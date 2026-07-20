@@ -16,12 +16,12 @@ pip install -r requirements.txt
 2. Create a .env file:
 
 ```bash
-SMTP_SERVER=SMTP_SERVER
-SMTP_PORT=SMTP_PORT
-SMTP_USERNAME=SMTP_USERNAME
-SMTP_PASSWORD=SMTP_PASSWORD
-EMAIL_FROM=EMAIL_FROM
-EMAIL_TO=EMAIL_TO
+SMTP_SERVER={smtp_server}
+SMTP_PORT={smtp_port}
+SMTP_USERNAME={smpt_username}
+SMTP_PASSWORD={smtp_password}
+EMAIL_FROM={email_from}
+EMAIL_TO={email_to}
 EMAIL_USE_TLS=true
 ```
 
