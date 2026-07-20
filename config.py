@@ -12,26 +12,33 @@ EMAIL_SEND_ENABLED = bool(SMTP_SERVER and SMTP_USERNAME and SMTP_PASSWORD and EM
 
 IRISH_FEEDS = [
     "https://www.rte.ie/feeds/rss/?index=/news/",
+    "https://feeds.feedburner.com/ieireland", # Irish Examiner
     "https://www.independent.ie/irish-news/rss/",
-    "https://www.rte.ie/feeds/rss/?index=/news/world/",
-    "https://www.bbc.co.uk/news/world/rss.xml",
-    "https://feeds.theguardian.com/theguardian/rss",
+    "https://feeds.breakingnews.ie/bntopstories?format=xml",
+    "https://www.thejournal.ie/feed/",
+    "https://limerickleader.ie/rss",
 ]
+
+# TODO: Add UK segment
 
 US_FEEDS = [
     "https://feeds.npr.org/1001/rss.xml",
-    "https://feeds.foxnews.com/foxnews/latest",
-    "https://www.cnbc.com/id/100003114/device/rss/rss.html",
-    "https://feeds.bloomberg.com/markets/news.rss",
-    "https://www.washingtonpost.com/rss",
+    "https://feeds.washingtonpost.com/rss/national",
+    "https://feeds.washingtonpost.com/rss/politics",
+    "https://www.cbsnews.com/latest/rss/us",
+    "https://abcnews.com/abcnews/usheadlines",
+    "https://abcnews.com/abcnews/politicsheadlines",
 ]
 
 WORLD_FEEDS = [
     "https://www.bbc.co.uk/news/world/rss.xml",
-    "https://www.france24.com/en/rss",
+    "https://www.rte.ie/feeds/rss/?index=/news/world/",
     "https://news.un.org/feed/subscribe/en/news/all/rss.xml",
-    "https://www.aljazeera.com/xml/rss/all.xml",
     "https://feeds.theguardian.com/theguardian/rss",
+    "https://feeds.washingtonpost.com/rss/world",
+    "https://feeds.feedburner.com/ieworld", # Irish Examiner
+    "https://www.cbsnews.com/latest/rss/world",
+    "https://abcnews.com/abcnews/internationalheadlines",
 ]
 
 POP_CULTURE_FEEDS = [
@@ -40,4 +47,7 @@ POP_CULTURE_FEEDS = [
     "https://www.hollywoodreporter.com/feed/",
     "https://variety.com/feed/",
     "https://www.comingsoon.net/feed",
+    "https://feeds.feedburner.com/ielifestyle",
+    "https://www.cbsnews.com/latest/rss/entertainment",
+    "https://abcnews.com/abcnews/entertainmentheadlines",
 ]
