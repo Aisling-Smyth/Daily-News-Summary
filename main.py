@@ -62,7 +62,7 @@ def generate_newsletter(today: str) -> str:
             all_sections.append(render(name, summaries))
             logger.info(f"Completed {name} with {len(summaries)} summaries")
 
-    newsletter = render_overview(today, section_meta, top_stories) + "\n\n" + "\n\n".join(all_sections)
+    newsletter = build_newsletter_title(today) + "\n\n" + "\n\n".join(all_sections) #render_overview(today, section_meta, top_stories) + "\n\n" + "\n\n".join(all_sections)
     return newsletter
 
 
@@ -87,7 +87,7 @@ def main():
     logs_dir = Path("logs")
     logs_dir.mkdir(exist_ok=True)
 
-    log_file = logs_dir / f"newsletter_{today}.log"
+    log_file = logs_dir / f"newsletter_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
