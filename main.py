@@ -23,6 +23,7 @@ def generate_newsletter(today: str) -> str:
 
     for name, feeds in [
         ("🇮🇪 Ireland", IRISH_FEEDS),
+        ("🇬🇧 UK", UK_FEEDS),
         ("🇺🇸 US", US_FEEDS),
         ("🌍 World", WORLD_FEEDS),
         ("🎬 Pop Culture", POP_CULTURE_FEEDS)

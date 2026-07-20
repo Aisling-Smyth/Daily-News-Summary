@@ -19,7 +19,13 @@ IRISH_FEEDS = [
     "https://limerickleader.ie/rss",
 ]
 
-# TODO: Add UK segment
+UK_FEEDS = [
+    "https://feeds.skynews.com/feeds/rss/home.xml",
+    "https://www.independent.co.uk/rss",
+    "https://www.huffingtonpost.co.uk/feeds/index.xml",
+    "https://www.dailyrecord.co.uk/news/?service=rss",
+    "https://feeds.bbci.co.uk/news/uk/rss.xml",
+]
 
 US_FEEDS = [
     "https://feeds.npr.org/1001/rss.xml",
