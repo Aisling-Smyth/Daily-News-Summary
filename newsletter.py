@@ -42,7 +42,7 @@ def render_overview(today: str, sections: Sequence[tuple[str, list[dict]]], top_
     for name, items in sections:
         anchor = name.lower().replace("🇮🇪", "ireland").replace("🇺🇸", "us").replace("🌍", "world").replace(" ", "-")
         lines.append(f"- [{name}](#{anchor})")
-        lines.append(f"  - [Overview](#{anchor}-overview)")
+        # lines.append(f"  - [Overview](#{anchor}-overview)")
         for i, item in enumerate(items[:5], 1):
             sub_anchor = f"{anchor}-{i}"
             headline = item.get("headline", f"Story {i}")
@@ -67,9 +67,9 @@ def render(name: str, summaries: Sequence[dict]) -> str:
         return ""
 
     overview = build_section_overview(summaries)
-    out = [f"## {name}", "", f"### Overview", "", f"{overview}", "", ""]
+    # out = [f"## {name}", "", f"### Overview", "", f"{overview}", "", ""]
     anchor = name.lower().replace("🇮🇪", "ireland").replace("🇺🇸", "us").replace("🌍", "world").replace(" ", "-")
-    out[0] = f"## {name}"
+    out = [f"## {name}"] # out[0] = f"## {name}"
     out.insert(1, "")
     out.insert(2, f"<a id=\"{anchor}-overview\"></a>")
 
