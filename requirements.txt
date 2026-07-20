@@ -1,0 +1,9 @@
+feedparser
+requests
+urllib3<2
+beautifulsoup4
+sentence-transformers
+scikit-learn
+numpy
+tqdm
+markdown
