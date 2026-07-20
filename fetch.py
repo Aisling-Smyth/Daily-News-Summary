@@ -37,7 +37,7 @@ def fetch(feeds: List[str], category: str) -> List[Story]:
                 "Accept": "application/rss+xml, application/atom+xml, text/xml",
             }
             # Disable SSL verification for problematic feeds
-            response = requests.get(url, headers=headers, timeout=10, verify=False)
+            response = requests.get(url, headers=headers, timeout=30, verify=False)
             response.raise_for_status()
             
             # Parse the fetched content
