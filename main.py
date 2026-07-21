@@ -40,7 +40,7 @@ def generate_newsletter(today: str) -> str:
         logger.info(f"Created {len(clusters)} clusters for {name}")
 
         summaries = []
-        max_summaries = 5
+        max_summaries = 3
         for i, c in enumerate(clusters[:max_summaries]):
             try:
                 headline = c[0].get("title", "Untitled story") if c else "Untitled story"
@@ -63,9 +63,27 @@ def generate_newsletter(today: str) -> str:
             all_sections.append(render(name, summaries))
             logger.info(f"Completed {name} with {len(summaries)} summaries")
 
-    newsletter = build_newsletter_title(today) + "\n\n" + "\n\n".join(all_sections) #render_overview(today, section_meta, top_stories) + "\n\n" + "\n\n".join(all_sections)
+    newsletter = build_newsletter_title(today) + "\n\n" + "\n\n".join(all_sections) + "\n\n" + quote_of_the_day() #render_overview(today, section_meta, top_stories) + "\n\n" + "\n\n".join(all_sections)
     return newsletter
 
+def quote_of_the_day():
+    import feedparser
+    
+    feed = feedparser.parse("https://www.brainyquote.com/link/quotebr.rss")
+
+    if not feed.entries:
+        return "<p>No quote available.</p>"
+
+    entry = feed.entries[0]
+
+    quote = entry.title
+    author = entry.description
+
+    return f"""
+> *{quote}*
+
+**{author}**
+"""
 
 def main():
     parser = argparse.ArgumentParser(description="Generate the daily news summary newsletter.")
