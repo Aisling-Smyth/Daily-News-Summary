@@ -12,12 +12,15 @@ from config import (
     OLLAMA_URL,
 )
 from data_types import StoryCluster
+from prompt_utils import load_prompt
 
 
 logger = logging.getLogger(__name__)
 
 
-def sanitize_summary_output(text: str) -> str:
+def sanitize_summary_output(
+    text: str,
+) -> str:
     """
     Clean and normalise LLM output.
 
@@ -89,7 +92,14 @@ def build_prompt(
     cluster: StoryCluster,
 ) -> str:
     """
-    Build prompt for summarising a story cluster.
+    Build summary prompt from story cluster.
+
+    Args:
+        cluster:
+            Related news stories.
+
+    Returns:
+        Completed prompt.
     """
 
     headlines = "\n".join(
@@ -97,27 +107,13 @@ def build_prompt(
         for story in cluster
     )
 
-    return f"""
-Summarise this news story as a concise but complete overview for a daily news digest.
+    template = load_prompt(
+        "summary.txt"
+    )
 
-Write two short paragraphs in plain prose.
-
-The first paragraph should cover the main facts.
-The second paragraph should explain why it matters and any wider implications.
-
-Keep the tone factual and neutral.
-
-Do not use:
-- headings
-- bullet points
-- greetings
-- preambles
-- commentary about the writing process
-
-Stories:
-
-{headlines}
-""".strip()
+    return template.format(
+        headlines=headlines,
+    )
 
 
 def summarise(
@@ -147,14 +143,14 @@ def send_prompt(
 
     Args:
         prompt:
-            Prompt sent to the model.
+            Prompt sent to model.
 
     Returns:
         Cleaned model response.
 
     Raises:
         RuntimeError:
-            If Ollama cannot complete request.
+            If Ollama is unavailable after retries.
     """
 
     for attempt in range(

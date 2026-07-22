@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Sequence, Tuple
 
 from data_types import SummaryEntry
+from prompt_utils import load_prompt
 from summarise import send_prompt
 
 
@@ -48,34 +49,65 @@ def build_section_overview(
     """
 
     headlines = [
-        item["headline"]
+        item.get("headline", "")
         for item in items[:3]
         if item.get("headline")
     ]
 
     if not headlines:
-        return (
-            "This section covers "
-            "the latest developments."
-        )
+        return "This section covers the latest developments."
 
-    if len(headlines) == 1:
-        return (
-            f"This section focuses on "
-            f"{headlines[0]}."
-        )
+    return "; ".join(headlines)
 
-    if len(headlines) == 2:
-        return (
-            f"This section focuses on "
-            f"{headlines[0]} and {headlines[1]}."
-        )
 
-    return (
-        f"This section focuses on "
-        f"{headlines[0]}, {headlines[1]}, "
-        f"and {headlines[2]}."
-    )
+def clean_intro_output(
+    text: str,
+) -> str:
+    """
+    Remove common LLM formatting artefacts.
+
+    Args:
+        text:
+            Raw generated introduction.
+
+    Returns:
+        Clean introduction text.
+    """
+
+    if not text:
+        return ""
+
+    cleaned = text.strip()
+
+    prefixes = [
+        "alright, here's a blurb draft:",
+        "here's a blurb draft:",
+        "here is a blurb draft:",
+        "sure,",
+        "of course,",
+        "certainly,",
+    ]
+
+    lower = cleaned.lower()
+
+    for prefix in prefixes:
+        if lower.startswith(prefix):
+            cleaned = cleaned[len(prefix):].strip()
+            break
+
+    if (
+        cleaned.startswith('"')
+        and cleaned.endswith('"')
+    ):
+        cleaned = cleaned[1:-1].strip()
+
+    if (
+        cleaned.startswith("'")
+        and cleaned.endswith("'")
+    ):
+        cleaned = cleaned[1:-1].strip()
+
+    return cleaned
 
 
 def render_overview(
@@ -85,7 +117,7 @@ def render_overview(
     ],
 ) -> str:
     """
-    Render newsletter introduction.
+    Render newsletter introduction and contents.
 
     Args:
         today:
@@ -103,36 +135,22 @@ def render_overview(
     )
 
     section_context = "\n".join(
-        f"{name}: "
-        f"{build_section_overview(items)}"
+        f"{name}: {build_section_overview(items)}"
         for name, items in sections
     )
 
+    prompt = load_prompt(
+        "newsletter_intro.txt"
+    )
+
     blurb = send_prompt(
-        f"""
-You are writing the opening blurb for a casual newsletter called "Up Smyth Creek".
+        prompt.format(
+            sections=section_context,
+        )
+    )
 
-The audience is a small group of friends.
-
-Write 1-3 sentences (40-70 words).
-
-Tone:
-- Irish
-- dry
-- observational
-- slightly sarcastic
-- conversational
-
-Avoid:
-- corporate newsletter language
-- clichés
-- excessive enthusiasm
-- "here's everything you need to know"
-
-Today's sections:
-
-{section_context}
-""".strip()
+    blurb = clean_intro_output(
+        blurb
     )
 
     lines = [
@@ -196,8 +214,13 @@ def render(
         summaries,
         start=1,
     ):
+        headline = item.get(
+            "headline",
+            f"Story {index}",
+        )
+
         output.append(
-            f"### {item.get('headline', f'Story {index}')}"
+            f"### {headline}"
         )
 
         output.append(
