@@ -63,7 +63,7 @@ def generate_newsletter(today: str) -> str:
             all_sections.append(render(name, summaries))
             logger.info(f"Completed {name} with {len(summaries)} summaries")
 
-    newsletter = build_newsletter_title(today) + "\n\n" + "\n\n".join(all_sections) + "\n\n" + quote_of_the_day() #render_overview(today, section_meta, top_stories) + "\n\n" + "\n\n".join(all_sections)
+    newsletter = render_overview(today, section_meta) + "\n\n" + "\n\n".join(all_sections) + "\n\n" + quote_of_the_day()
     return newsletter
 
 def quote_of_the_day():
@@ -76,13 +76,15 @@ def quote_of_the_day():
 
     entry = feed.entries[0]
 
-    quote = entry.title
-    author = entry.description
+    author = entry.title
+    quote = entry.description
 
     return f"""
-> *{quote}*
+## Quote of the Day
 
-**{author}**
+*{quote}*
+
+**— {author}**
 """
 
 def main():

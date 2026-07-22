@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from typing import List, Sequence
+from summarise import send_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -29,26 +30,57 @@ def build_newsletter_title(today: str) -> str:
     return f"Daily News Summary: {date_text}"
 
 
-def render_overview(today: str, sections: Sequence[tuple[str, list[dict]]], top_stories: Sequence[dict]) -> str:
+def render_overview(today: str, sections: Sequence[tuple[str, list[dict]]]) -> str:
     """Render a polished overview for the newsletter."""
     title = build_newsletter_title(today)
+
+    blurb = send_prompt(f"""You are writing the opening blurb for a casual newsletter called "Up Smyth Creek", where you greet your friends with a witty introduction.
+
+The audience is a small group of friends.
+
+Write 1-3 sentences (40-70 words).
+
+The tone should be witty, dry, slightly sarcastic, and conversational—not cringe, not overly enthusiastic, and not like a journalist. It should sound like someone opening the conversation in a group chat.
+
+Reference the overall mix of today's stories (below) without mentioning every headline. If there are obvious themes (politics, storms, celebrity drama, AI, sports, etc.), weave them into the joke.
+
+Avoid:
+- "In today's fast-paced world..."
+- "Buckle up..."
+- "Here's everything you need to know..."
+- excessive emojis
+- clichés
+- corporate newsletter language
+                        
+Your humour is:
+- Irish
+- dry
+- observational
+- slightly sarcastic
+- never mean
+- occasionally self-deprecating
+
+Today's stories: {sections}
+""")
+
     lines = [
         f"# {title}",
+        "",
+        f"{blurb}",
         "",
         "## Table of contents",
         "",
     ]
 
-    for name, items in sections:
-        anchor = name.lower().replace("🇮🇪", "ireland").replace("🇺🇸", "us").replace("🌍", "world").replace(" ", "-")
-        lines.append(f"- [{name}](#{anchor})")
-        # lines.append(f"  - [Overview](#{anchor}-overview)")
-        for i, item in enumerate(items[:5], 1):
-            sub_anchor = f"{anchor}-{i}"
-            headline = item.get("headline", f"Story {i}")
-            lines.append(f"  - [{headline}]({anchor}#{sub_anchor})")
+    for name, _ in sections:
+        lines.append(f"- {name}")
 
-    lines.extend(["", "---", ""])
+    lines.extend([
+        "",
+        "---",
+        "",
+    ])
+
     return "\n".join(lines)
 
 
@@ -66,12 +98,7 @@ def render(name: str, summaries: Sequence[dict]) -> str:
         logger.warning(f"No summaries to render for {name}")
         return ""
 
-    overview = build_section_overview(summaries)
-    # out = [f"## {name}", "", f"### Overview", "", f"{overview}", "", ""]
-    anchor = name.lower().replace("🇮🇪", "ireland").replace("🇺🇸", "us").replace("🌍", "world").replace(" ", "-")
-    out = [f"## {name}"] # out[0] = f"## {name}"
-    out.insert(1, "")
-    out.insert(2, f"<a id=\"{anchor}-overview\"></a>")
+    out = [f"## {name}"]
 
     for i, item in enumerate(summaries[:5], 1):
         if isinstance(item, dict):

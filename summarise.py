@@ -67,7 +67,9 @@ Headlines:
 
 {headlines}
 """
+    return send_prompt(prompt)
 
+def send_prompt(prompt):
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             logger.debug(f"Sending request to Ollama (attempt {attempt}/{MAX_RETRIES})")
