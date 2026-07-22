@@ -23,6 +23,7 @@ def generate_newsletter(today: str) -> str:
 
     for name, feeds in [
         ("🇮🇪 Ireland", IRISH_FEEDS),
+        ("🇬🇧 UK", UK_FEEDS),
         ("🇺🇸 US", US_FEEDS),
         ("🌍 World", WORLD_FEEDS),
         ("🎬 Pop Culture", POP_CULTURE_FEEDS)
@@ -39,7 +40,7 @@ def generate_newsletter(today: str) -> str:
         logger.info(f"Created {len(clusters)} clusters for {name}")
 
         summaries = []
-        max_summaries = 5
+        max_summaries = 3
         for i, c in enumerate(clusters[:max_summaries]):
             try:
                 headline = c[0].get("title", "Untitled story") if c else "Untitled story"
@@ -62,9 +63,29 @@ def generate_newsletter(today: str) -> str:
             all_sections.append(render(name, summaries))
             logger.info(f"Completed {name} with {len(summaries)} summaries")
 
-    newsletter = render_overview(today, section_meta, top_stories) + "\n\n" + "\n\n".join(all_sections)
+    newsletter = render_overview(today, section_meta) + "\n\n" + "\n\n".join(all_sections) + "\n\n" + quote_of_the_day()
     return newsletter
 
+def quote_of_the_day():
+    import feedparser
+    
+    feed = feedparser.parse("https://www.brainyquote.com/link/quotebr.rss")
+
+    if not feed.entries:
+        return "<p>No quote available.</p>"
+
+    entry = feed.entries[0]
+
+    author = entry.title
+    quote = entry.description
+
+    return f"""
+## Quote of the Day
+
+*{quote}*
+
+**— {author}**
+"""
 
 def main():
     parser = argparse.ArgumentParser(description="Generate the daily news summary newsletter.")
@@ -87,7 +108,7 @@ def main():
     logs_dir = Path("logs")
     logs_dir.mkdir(exist_ok=True)
 
-    log_file = logs_dir / f"newsletter_{today}.log"
+    log_file = logs_dir / f"newsletter_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',

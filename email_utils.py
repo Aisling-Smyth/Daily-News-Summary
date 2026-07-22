@@ -41,6 +41,7 @@ def send_newsletter_email(
         extensions=["extra", "sane_lists"],
         output_format="html5",
     )
+    
     message.add_alternative(html_body, subtype="html")
 
     if attachment_path:
