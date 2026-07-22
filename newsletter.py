@@ -162,7 +162,7 @@ def render_overview(
         "",
     ]
 
-    for name, _ in sections:
+    for name, feeds in sections:
         lines.append(
             f"- {name}"
         )

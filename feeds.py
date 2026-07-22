@@ -61,11 +61,10 @@ POP_CULTURE_FEEDS: List[str] = [
     "https://abcnews.com/abcnews/entertainmentheadlines",
 ]
 
-
-SECTIONS: List[Tuple[str, List[str]]] = [
-    ("🇮🇪 Ireland", IRISH_FEEDS),
-    ("🇬🇧 UK", UK_FEEDS),
-    ("🇺🇸 US", US_FEEDS),
-    ("🌍 World", WORLD_FEEDS),
-    ("🎬 Pop Culture", POP_CULTURE_FEEDS),
+SECTIONS: List[Tuple[str, str, List[str]]] = [
+    ("Ireland", "🇮🇪", IRISH_FEEDS),
+    ("UK", "🇬🇧", UK_FEEDS),
+    ("US", "🇺🇸", US_FEEDS),
+    ("World", "🌍", WORLD_FEEDS),
+    ("Pop Culture", "🎬", POP_CULTURE_FEEDS),
 ]

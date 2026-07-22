@@ -4,8 +4,6 @@ from email.message import EmailMessage
 from pathlib import Path
 from typing import Optional, Union
 
-import markdown
-
 from config import (
     EMAIL_FROM,
     EMAIL_SUBJECT,
@@ -17,6 +15,7 @@ from config import (
     SMTP_SERVER,
     SMTP_USERNAME,
 )
+from newsletter_html import render_newsletter_html
 
 
 logger = logging.getLogger(__name__)
@@ -73,14 +72,7 @@ def send_newsletter_email(
         newsletter_text
     )
 
-    html_body = markdown.markdown(
-        newsletter_text,
-        extensions=[
-            "extra",
-            "sane_lists",
-        ],
-        output_format="html5",
-    )
+    html_body = render_newsletter_html(newsletter_text)
 
     message.add_alternative(
         html_body,

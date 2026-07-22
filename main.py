@@ -122,9 +122,9 @@ def generate_newsletter(today: str) -> str:
 
     rendered_sections: List[str] = []
 
-    for name, feed_urls in SECTIONS:
+    for name, icon, feed_urls in SECTIONS:
         section_name, summaries = generate_section(
-            name,
+            f"{icon} {name}",
             feed_urls,
         )
 
