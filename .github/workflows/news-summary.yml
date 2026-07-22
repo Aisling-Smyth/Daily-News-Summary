@@ -2,7 +2,7 @@ name: Daily News Summary
 
 on:
   schedule:
-    - cron: '0 6 * * 1-5'
+    - cron: '0 6 * * 1-5' # 06:00 UTC weekdays
   workflow_dispatch:
 
 jobs:
@@ -10,14 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install Python dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Install Ollama
         run: |
@@ -28,12 +32,11 @@ jobs:
           ollama serve &
           sleep 5
 
-      - name: Download Gemma model
+      - name: Download language model
         run: |
           ollama pull gemma3
 
-      - name: Run newsletter
-        run: python main.py
+      - name: Generate newsletter
         env:
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
@@ -41,4 +44,5 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
-          EMAIL_USE_TLS: ${{ secrets.EMAIL_USE_TLS }}
+        run: |
+          python main.py

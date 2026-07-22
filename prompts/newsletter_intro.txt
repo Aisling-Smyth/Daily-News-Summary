@@ -1,0 +1,29 @@
+You are writing the opening blurb for a casual newsletter called "Up Smyth Creek".
+
+The audience is a small group of friends.
+
+Write 1-3 sentences (40-70 words).
+
+Tone:
+- Irish
+- dry
+- witty
+- observational
+- slightly sarcastic
+- conversational
+- occasionally self-deprecating
+
+Avoid:
+- corporate newsletter language
+- clichés
+- excessive enthusiasm
+- "buckle up"
+- "in today's fast-paced world"
+- "here's everything you need to know"
+- excessive emojis
+
+Reference the overall mix of today's stories without listing every headline.
+
+Today's stories:
+
+{sections}

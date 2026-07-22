@@ -1,92 +1,168 @@
-import feedparser
 import logging
-import requests
-import urllib3
 from time import sleep
 from typing import List
 
+import feedparser
+import requests
+
+from config import (
+    MAX_ENTRIES_PER_FEED,
+    RATE_LIMIT_SECONDS,
+    REQUEST_TIMEOUT,
+)
 from data_types import Story
 
-# Suppress SSL warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
-# User-Agent header to avoid being blocked by news websites
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 
-def fetch(feeds: List[str], category: str) -> List[Story]:
-    """Fetch stories from multiple RSS feeds with rate limiting and error handling.
+USER_AGENT = (
+    "Mozilla/5.0 "
+    "(Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 "
+    "(KHTML, like Gecko) "
+    "Chrome/120 Safari/537.36"
+)
+
+
+def fetch(
+    feeds: List[str],
+    category: str,
+) -> List[Story]:
+    """
+    Fetch stories from RSS feeds.
 
     Args:
-        feeds: List of RSS feed URLs.
-        category: Category name for these feeds (for logging and data).
+        feeds:
+            List of RSS feed URLs.
+
+        category:
+            Newsletter section name.
 
     Returns:
-        List[Story]: Parsed story objects from all feeds.
+        List of parsed stories.
     """
+
     stories: List[Story] = []
 
-    for i, url in enumerate(feeds):
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": (
+            "application/rss+xml, "
+            "application/atom+xml, "
+            "text/xml"
+        ),
+    }
+
+    session = requests.Session()
+    session.headers.update(headers)
+
+    for index, url in enumerate(feeds):
+
         try:
-            logger.info(f"Fetching {url}...")
-            
-            # Fetch the feed content with proper headers and timeout
-            headers = {
-                "User-Agent": USER_AGENT,
-                "Accept": "application/rss+xml, application/atom+xml, text/xml",
-            }
-            # Disable SSL verification for problematic feeds
-            response = requests.get(url, headers=headers, timeout=30, verify=False)
+            logger.info(
+                "Fetching feed %d/%d for %s",
+                index + 1,
+                len(feeds),
+                category,
+            )
+
+            response = session.get(
+                url,
+                timeout=REQUEST_TIMEOUT,
+            )
+
             response.raise_for_status()
-            
-            # Parse the fetched content
-            feed = feedparser.parse(response.content)
-            
+
+            feed = feedparser.parse(
+                response.content
+            )
+
             if not feed.entries:
-                logger.warning(f"No entries found in {url}")
+                logger.warning(
+                    "No entries found in feed: %s",
+                    url,
+                )
                 continue
-            
-            source = feed.feed.get("title", url)
-            logger.debug(f"Feed source: {source}")
 
-            feed_stories = 0
-            for e in feed.entries[:10]:
-                try:
-                    story: Story = {
-                        "title": getattr(e, "title", "[No title]"),
-                        "summary": getattr(e, "summary", ""),
-                        "link": getattr(e, "link", ""),
-                        "source": source,
-                        "category": category,
-                    }
-                    stories.append(story)
-                    feed_stories += 1
-                except Exception as e:
-                    logger.warning(f"Failed to parse story from {source}: {e}")
-                    continue
+            source = feed.feed.get(
+                "title",
+                url,
+            )
 
-            logger.info(f"Fetched {feed_stories} stories from {source}")
-            
-            # Rate limiting: wait between feed requests
-            if i < len(feeds) - 1:
-                sleep(1)
-        
+            count = 0
+
+            for entry in feed.entries[:MAX_ENTRIES_PER_FEED]:
+
+                story: Story = {
+                    "title": getattr(
+                        entry,
+                        "title",
+                        "[No title]",
+                    ),
+                    "summary": getattr(
+                        entry,
+                        "summary",
+                        "",
+                    ),
+                    "link": getattr(
+                        entry,
+                        "link",
+                        "",
+                    ),
+                    "source": source,
+                    "category": category,
+                }
+
+                stories.append(
+                    story
+                )
+
+                count += 1
+
+            logger.info(
+                "Fetched %d stories from %s",
+                count,
+                source,
+            )
+
         except requests.exceptions.Timeout:
-            logger.error(f"Timeout while fetching {url} (waited 10s)")
-            continue
-        except requests.exceptions.ConnectionError as e:
-            logger.error(f"Connection error while fetching {url}: {e}")
-            continue
-        except requests.exceptions.SSLError as e:
-            logger.error(f"SSL error while fetching {url}: {e}")
-            continue
-        except requests.exceptions.HTTPError as e:
-            logger.error(f"HTTP error while fetching {url}: {e.response.status_code}")
-            continue
-        except Exception as e:
-            logger.error(f"Failed to fetch {url}: {e}")
-            continue
-    
-    logger.info(f"Total stories fetched for {category}: {len(stories)}")
+            logger.error(
+                "Timeout fetching feed: %s",
+                url,
+            )
+
+        except requests.exceptions.HTTPError as exc:
+            logger.error(
+                "HTTP error fetching %s: %s",
+                url,
+                exc.response.status_code,
+            )
+
+        except requests.exceptions.RequestException as exc:
+            logger.error(
+                "Request error fetching %s: %s",
+                url,
+                exc,
+            )
+
+        except Exception:
+            logger.error(
+                "Unexpected error fetching %s",
+                url,
+                exc_info=True,
+            )
+
+        finally:
+            if index < len(feeds) - 1:
+                sleep(
+                    RATE_LIMIT_SECONDS
+                )
+
+    logger.info(
+        "Fetched %d total stories for %s",
+        len(stories),
+        category,
+    )
+
     return stories

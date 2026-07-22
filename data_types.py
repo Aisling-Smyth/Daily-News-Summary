@@ -1,7 +1,11 @@
-from typing import List, TypedDict
+from typing import List, Tuple, TypedDict
 
 
 class Story(TypedDict):
+    """
+    Individual RSS story.
+    """
+
     title: str
     summary: str
     link: str
@@ -13,9 +17,15 @@ StoryCluster = List[Story]
 
 
 class SummaryEntry(TypedDict):
+    """
+    Generated newsletter story summary.
+    """
+
     headline: str
     summary: str
     link: str
 
 
-SectionMeta = List[tuple[str, List[SummaryEntry]]]
+SectionMeta = List[
+    Tuple[str, List[SummaryEntry]]
+]

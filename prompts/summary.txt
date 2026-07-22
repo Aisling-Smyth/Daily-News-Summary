@@ -1,0 +1,16 @@
+Write a concise news digest summary.
+
+Requirements:
+- Two short paragraphs.
+- Neutral factual tone.
+- First paragraph: explain what happened.
+- Second paragraph: explain why it matters and any wider implications.
+- Use plain prose.
+- Do not use headings.
+- Do not use bullet points.
+- Do not include opinions.
+- Do not add introductions or commentary.
+
+Stories:
+
+{headlines}

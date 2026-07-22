@@ -1,164 +1,269 @@
 import argparse
 import logging
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import List, Tuple
 
-from config import *
-from data_types import Story, StoryCluster, SummaryEntry
+from config import (
+    EMAIL_SEND_ENABLED,
+    MAX_SUMMARIES_PER_SECTION,
+)
+from data_types import SummaryEntry
 from email_utils import send_newsletter_email
 from fetch import fetch
+from feeds import SECTIONS
+from newsletter import (
+    build_newsletter_title,
+    render,
+    render_overview,
+)
+from quotes import quote_of_the_day
 from cluster import cluster
 from rank import rank
 from summarise import summarise
-from newsletter import build_newsletter_title, render, render_overview
+
 
 logger = logging.getLogger(__name__)
 
 
+def generate_section(
+    name: str,
+    feed_urls: List[str],
+) -> Tuple[str, List[SummaryEntry]]:
+    """
+    Generate newsletter summaries for one section.
+
+    Args:
+        name:
+            Display name of the section.
+
+        feed_urls:
+            RSS feeds for the section.
+
+    Returns:
+        Tuple containing section name and generated summaries.
+    """
+
+    logger.info("Processing %s...", name)
+
+    stories = fetch(feed_urls, name)
+
+    if not stories:
+        logger.warning(
+            "No stories found for %s",
+            name,
+        )
+        return name, []
+
+    clusters = rank(
+        cluster(stories)
+    )
+
+    logger.info(
+        "Created %d clusters for %s",
+        len(clusters),
+        name,
+    )
+
+    summaries: List[SummaryEntry] = []
+
+    for index, story_cluster in enumerate(
+        clusters[:MAX_SUMMARIES_PER_SECTION],
+        start=1,
+    ):
+        try:
+            summary = summarise(story_cluster)
+
+            entry: SummaryEntry = {
+                "headline": story_cluster[0].get(
+                    "title",
+                    "Untitled story",
+                ),
+                "summary": summary,
+                "link": story_cluster[0].get(
+                    "link",
+                    "",
+                ),
+            }
+
+            summaries.append(entry)
+
+            logger.info(
+                "Summarised story %d/%d for %s",
+                index,
+                MAX_SUMMARIES_PER_SECTION,
+                name,
+            )
+
+        except Exception:
+            logger.error(
+                "Failed summarising story %d for %s",
+                index,
+                name,
+                exc_info=True,
+            )
+
+    return name, summaries
+
+
 def generate_newsletter(today: str) -> str:
-    all_sections: List[str] = []
-    section_meta: List[tuple[str, List[SummaryEntry]]] = []
-    top_stories: List[SummaryEntry] = []
+    """
+    Generate the complete newsletter.
 
-    for name, feeds in [
-        ("🇮🇪 Ireland", IRISH_FEEDS),
-        ("🇬🇧 UK", UK_FEEDS),
-        ("🇺🇸 US", US_FEEDS),
-        ("🌍 World", WORLD_FEEDS),
-        ("🎬 Pop Culture", POP_CULTURE_FEEDS)
-    ]:
-        logger.info(f"Processing {name}...")
-        stories = fetch(feeds, name)
-        logger.info(f"Fetched {len(stories)} stories for {name}")
+    Args:
+        today:
+            Date in YYYY-MM-DD format.
 
-        if not stories:
-            logger.warning(f"No stories found for {name}")
-            continue
+    Returns:
+        Markdown newsletter content.
+    """
 
-        clusters = rank(cluster(stories))
-        logger.info(f"Created {len(clusters)} clusters for {name}")
+    sections: List[Tuple[str, List[SummaryEntry]]] = []
 
-        summaries = []
-        max_summaries = 3
-        for i, c in enumerate(clusters[:max_summaries]):
-            try:
-                headline = c[0].get("title", "Untitled story") if c else "Untitled story"
-                summary_text = summarise(c)
-                summary_entry: SummaryEntry = {
-                    "headline": headline,
-                    "summary": summary_text,
-                    "link": c[0].get("link", ""),
-                }
-                summaries.append(summary_entry)
-                if len(top_stories) < 3:
-                    top_stories.append(summary_entry)
-                logger.info(f"Summarized cluster {i+1}/{min(max_summaries, len(clusters))} for {name}")
-            except Exception as e:
-                logger.error(f"Failed to summarize cluster {i+1} for {name}: {e}", exc_info=True)
-                continue
+    rendered_sections: List[str] = []
+
+    for name, feed_urls in SECTIONS:
+        section_name, summaries = generate_section(
+            name,
+            feed_urls,
+        )
 
         if summaries:
-            section_meta.append((name, summaries))
-            all_sections.append(render(name, summaries))
-            logger.info(f"Completed {name} with {len(summaries)} summaries")
+            sections.append(
+                (
+                    section_name,
+                    summaries,
+                )
+            )
 
-    newsletter = render_overview(today, section_meta) + "\n\n" + "\n\n".join(all_sections) + "\n\n" + quote_of_the_day()
+            rendered_sections.append(
+                render(
+                    section_name,
+                    summaries,
+                )
+            )
+
+    newsletter = "\n\n".join(
+        [
+            render_overview(
+                today,
+                sections,
+            ),
+            "\n\n".join(rendered_sections),
+            quote_of_the_day(),
+        ]
+    )
+
     return newsletter
 
-def quote_of_the_day():
-    import feedparser
-    
-    feed = feedparser.parse("https://www.brainyquote.com/link/quotebr.rss")
-
-    if not feed.entries:
-        return "<p>No quote available.</p>"
-
-    entry = feed.entries[0]
-
-    author = entry.title
-    quote = entry.description
-
-    return f"""
-## Quote of the Day
-
-*{quote}*
-
-**— {author}**
-"""
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate the daily news summary newsletter.")
+    parser = argparse.ArgumentParser(
+        description="Generate the daily news summary newsletter."
+    )
+
     parser.add_argument(
         "--no-email",
         action="store_true",
-        help="Generate the newsletter without sending email even if SMTP settings are configured.",
+        help="Generate newsletter without sending email.",
     )
+
     parser.add_argument(
         "--attach",
         action="store_true",
-        help="Attach the generated markdown file to the email when sending.",
+        help="Attach markdown file to email.",
     )
+
     args = parser.parse_args()
 
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now().strftime(
+        "%Y-%m-%d"
+    )
+
     output_dir = Path("output")
-    output_dir.mkdir(exist_ok=True)
+    output_dir.mkdir(
+        exist_ok=True
+    )
 
     logs_dir = Path("logs")
-    logs_dir.mkdir(exist_ok=True)
+    logs_dir.mkdir(
+        exist_ok=True
+    )
 
-    log_file = logs_dir / f"newsletter_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    log_file = logs_dir / (
+        f"newsletter_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    )
+
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
+        format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[
             logging.FileHandler(log_file),
-            logging.StreamHandler()
-        ]
+            logging.StreamHandler(),
+        ],
     )
-    logger = logging.getLogger(__name__)
-    logger.info(f"Output directory ready: {output_dir.absolute()}")
-    logger.info(f"Logs directory ready: {logs_dir.absolute()}")
-    logger.info(f"Log file: {log_file.absolute()}")
+
+    logger.info(
+        "Starting newsletter generation"
+    )
 
     try:
-        newsletter = generate_newsletter(today)
+        newsletter = generate_newsletter(
+            today
+        )
 
-        if not newsletter.strip():
-            logger.warning("Newsletter is empty - no summaries were generated")
-            logger.warning("Check that Ollama is running and gemma3 model is loaded")
+        output_file = output_dir / (
+            f"daily_{today}.md"
+        )
 
-        output_file = output_dir / f"daily_{today}.md"
-        with open(output_file, "w", encoding="utf8") as f:
-            f.write(newsletter)
+        output_file.write_text(
+            newsletter,
+            encoding="utf-8",
+        )
 
-        logger.info(f"Newsletter written to {output_file.absolute()}")
+        logger.info(
+            "Newsletter written to %s",
+            output_file,
+        )
 
-        subject = build_newsletter_title(today)
-        send_email = EMAIL_SEND_ENABLED and not args.no_email
-        if send_email:
-            email_success = send_newsletter_email(
+        if (
+            EMAIL_SEND_ENABLED
+            and not args.no_email
+        ):
+            success = send_newsletter_email(
                 newsletter,
                 output_file if args.attach else None,
-                subject=subject,
+                subject=build_newsletter_title(today),
             )
-            if not email_success:
-                logger.error("Newsletter generation completed, but email failed.")
+
+            if success:
+                logger.info(
+                    "Newsletter emailed successfully"
+                )
             else:
-                logger.info("Newsletter emailed successfully.")
+                logger.error(
+                    "Newsletter generated but email failed"
+                )
+
         elif args.no_email:
-            logger.info("Email sending skipped by user request (--no-email).")
-        elif not EMAIL_SEND_ENABLED:
-            logger.info("Email sending is disabled because SMTP is not fully configured.")
+            logger.info(
+                "Email skipped by user request"
+            )
 
-        if newsletter.strip():
-            logger.info("Newsletter generation completed successfully")
         else:
-            logger.warning("Newsletter generation completed but output is empty")
+            logger.info(
+                "Email disabled"
+            )
 
-    except Exception as e:
-        logger.error(f"Fatal error during newsletter generation: {e}", exc_info=True)
+        logger.info(
+            "Newsletter generation complete"
+        )
+
+    except Exception:
+        logger.error(
+            "Fatal newsletter generation error",
+            exc_info=True,
+        )
         raise
 
 

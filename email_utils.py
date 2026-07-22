@@ -6,70 +6,190 @@ from typing import Optional, Union
 
 import markdown
 
-from config import *
+from config import (
+    EMAIL_FROM,
+    EMAIL_SUBJECT,
+    EMAIL_TO,
+    EMAIL_SEND_ENABLED,
+    EMAIL_USE_TLS,
+    SMTP_PASSWORD,
+    SMTP_PORT,
+    SMTP_SERVER,
+    SMTP_USERNAME,
+)
+
 
 logger = logging.getLogger(__name__)
 
 
 def send_newsletter_email(
     newsletter_text: str,
-    attachment_path: Optional[Union[Path, str]] = None,
+    attachment_path: Optional[
+        Union[Path, str]
+    ] = None,
     subject: Optional[str] = None,
 ) -> bool:
-    """Send the generated newsletter by email.
+    """
+    Send newsletter by email.
 
     Args:
-        newsletter_text: The body text of the newsletter.
-        attachment_path: Optional markdown path to attach.
-        subject: Optional email subject line.
+        newsletter_text:
+            Newsletter markdown content.
+
+        attachment_path:
+            Optional markdown attachment.
+
+        subject:
+            Optional email subject override.
 
     Returns:
-        bool: True when email send succeeds, False otherwise.
+        True if email sends successfully.
     """
+
     if not EMAIL_SEND_ENABLED:
-        logger.warning("Email sending is disabled because SMTP settings are incomplete.")
+        logger.warning(
+            "Email sending disabled: "
+            "SMTP settings incomplete"
+        )
         return False
 
     message = EmailMessage()
-    message["From"] = EMAIL_FROM or SMTP_USERNAME
-    message["To"] = ", ".join(EMAIL_TO)
-    message["Subject"] = subject or EMAIL_SUBJECT
-    message.set_content(newsletter_text)
+
+    message["From"] = (
+        EMAIL_FROM
+        or SMTP_USERNAME
+    )
+
+    message["To"] = ", ".join(
+        EMAIL_TO
+    )
+
+    message["Subject"] = (
+        subject
+        or EMAIL_SUBJECT
+    )
+
+    message.set_content(
+        newsletter_text
+    )
 
     html_body = markdown.markdown(
         newsletter_text,
-        extensions=["extra", "sane_lists"],
+        extensions=[
+            "extra",
+            "sane_lists",
+        ],
         output_format="html5",
     )
-    
-    message.add_alternative(html_body, subtype="html")
+
+    message.add_alternative(
+        html_body,
+        subtype="html",
+    )
 
     if attachment_path:
-        path = Path(attachment_path)
-        if path.exists():
-            message.add_attachment(
-                path.read_bytes(),
-                maintype="text",
-                subtype="markdown",
-                filename=path.name,
-            )
-        else:
-            logger.warning(f"Attachment path does not exist: {path}")
+        attach_file(
+            message,
+            attachment_path,
+        )
 
     try:
         if EMAIL_USE_TLS:
-            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=30) as smtp:
-                smtp.ehlo()
-                smtp.starttls()
-                smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
-                smtp.send_message(message)
+            send_tls_email(
+                message
+            )
         else:
-            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=30) as smtp:
-                smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
-                smtp.send_message(message)
+            send_ssl_email(
+                message
+            )
 
-        logger.info(f"Newsletter emailed to {EMAIL_TO}")
+        logger.info(
+            "Newsletter email sent successfully"
+        )
+
         return True
-    except Exception as e:
-        logger.error(f"Failed to send newsletter email: {e}", exc_info=True)
+
+    except Exception:
+        logger.error(
+            "Failed to send newsletter email",
+            exc_info=True,
+        )
+
         return False
+
+
+def attach_file(
+    message: EmailMessage,
+    attachment_path: Union[Path, str],
+) -> None:
+    """
+    Attach markdown file if available.
+    """
+
+    path = Path(
+        attachment_path
+    )
+
+    if not path.exists():
+        logger.warning(
+            "Attachment not found: %s",
+            path,
+        )
+        return
+
+    message.add_attachment(
+        path.read_bytes(),
+        maintype="text",
+        subtype="markdown",
+        filename=path.name,
+    )
+
+
+def send_tls_email(
+    message: EmailMessage,
+) -> None:
+    """
+    Send email using STARTTLS.
+    """
+
+    with smtplib.SMTP(
+        SMTP_SERVER,
+        SMTP_PORT,
+        timeout=30,
+    ) as smtp:
+
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.ehlo()
+
+        smtp.login(
+            SMTP_USERNAME,
+            SMTP_PASSWORD,
+        )
+
+        smtp.send_message(
+            message
+        )
+
+
+def send_ssl_email(
+    message: EmailMessage,
+) -> None:
+    """
+    Send email using SSL.
+    """
+
+    with smtplib.SMTP_SSL(
+        SMTP_SERVER,
+        SMTP_PORT,
+        timeout=30,
+    ) as smtp:
+
+        smtp.login(
+            SMTP_USERNAME,
+            SMTP_PASSWORD,
+        )
+
+        smtp.send_message(
+            message
+        )

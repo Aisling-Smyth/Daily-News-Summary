@@ -1,125 +1,243 @@
 import logging
 from datetime import datetime
-from typing import List, Sequence
+from typing import List, Sequence, Tuple
+
+from data_types import SummaryEntry
 from summarise import send_prompt
+
 
 logger = logging.getLogger(__name__)
 
 
-def build_section_overview(items: Sequence[dict]) -> str:
-    """Create a short overview for a section from its top headlines."""
-    if not items:
-        return "This section covers the latest developments in the region."
+def build_newsletter_title(
+    today: str,
+) -> str:
+    """
+    Build newsletter title from date.
 
-    headlines = [item.get("headline", "") for item in items[:3] if item.get("headline")]
-    if not headlines:
-        return "This section covers the latest developments in the region."
+    Args:
+        today:
+            Date in YYYY-MM-DD format.
 
-    if len(headlines) == 1:
-        return f"This section focuses on {headlines[0]}."
+    Returns:
+        Formatted newsletter title.
+    """
 
-    if len(headlines) == 2:
-        return f"This section focuses on {headlines[0]} and {headlines[1]}."
+    date_text = datetime.strptime(
+        today,
+        "%Y-%m-%d",
+    ).strftime(
+        "%d %B %Y"
+    )
 
-    return f"This section focuses on {headlines[0]}, {headlines[1]}, and {headlines[2]}."
-
-
-def build_newsletter_title(today: str) -> str:
-    """Build the newsletter title and email subject from a date string."""
-    date_text = datetime.strptime(today, "%Y-%m-%d").strftime("%d %B %Y")
     return f"Daily News Summary: {date_text}"
 
 
-def render_overview(today: str, sections: Sequence[tuple[str, list[dict]]]) -> str:
-    """Render a polished overview for the newsletter."""
-    title = build_newsletter_title(today)
+def build_section_overview(
+    items: Sequence[SummaryEntry],
+) -> str:
+    """
+    Create a short section description.
 
-    blurb = send_prompt(f"""You are writing the opening blurb for a casual newsletter called "Up Smyth Creek", where you greet your friends with a witty introduction.
+    Args:
+        items:
+            Section summaries.
+
+    Returns:
+        Human-readable overview.
+    """
+
+    headlines = [
+        item["headline"]
+        for item in items[:3]
+        if item.get("headline")
+    ]
+
+    if not headlines:
+        return (
+            "This section covers "
+            "the latest developments."
+        )
+
+    if len(headlines) == 1:
+        return (
+            f"This section focuses on "
+            f"{headlines[0]}."
+        )
+
+    if len(headlines) == 2:
+        return (
+            f"This section focuses on "
+            f"{headlines[0]} and {headlines[1]}."
+        )
+
+    return (
+        f"This section focuses on "
+        f"{headlines[0]}, {headlines[1]}, "
+        f"and {headlines[2]}."
+    )
+
+
+def render_overview(
+    today: str,
+    sections: Sequence[
+        Tuple[str, List[SummaryEntry]]
+    ],
+) -> str:
+    """
+    Render newsletter introduction.
+
+    Args:
+        today:
+            Newsletter date.
+
+        sections:
+            Generated newsletter sections.
+
+    Returns:
+        Markdown introduction.
+    """
+
+    title = build_newsletter_title(
+        today
+    )
+
+    section_context = "\n".join(
+        f"{name}: "
+        f"{build_section_overview(items)}"
+        for name, items in sections
+    )
+
+    blurb = send_prompt(
+        f"""
+You are writing the opening blurb for a casual newsletter called "Up Smyth Creek".
 
 The audience is a small group of friends.
 
 Write 1-3 sentences (40-70 words).
 
-The tone should be witty, dry, slightly sarcastic, and conversational—not cringe, not overly enthusiastic, and not like a journalist. It should sound like someone opening the conversation in a group chat.
-
-Reference the overall mix of today's stories (below) without mentioning every headline. If there are obvious themes (politics, storms, celebrity drama, AI, sports, etc.), weave them into the joke.
-
-Avoid:
-- "In today's fast-paced world..."
-- "Buckle up..."
-- "Here's everything you need to know..."
-- excessive emojis
-- clichés
-- corporate newsletter language
-                        
-Your humour is:
+Tone:
 - Irish
 - dry
 - observational
 - slightly sarcastic
-- never mean
-- occasionally self-deprecating
+- conversational
 
-Today's stories: {sections}
-""")
+Avoid:
+- corporate newsletter language
+- clichés
+- excessive enthusiasm
+- "here's everything you need to know"
+
+Today's sections:
+
+{section_context}
+""".strip()
+    )
 
     lines = [
         f"# {title}",
         "",
-        f"{blurb}",
+        blurb,
         "",
         "## Table of contents",
         "",
     ]
 
     for name, _ in sections:
-        lines.append(f"- {name}")
+        lines.append(
+            f"- {name}"
+        )
 
-    lines.extend([
-        "",
-        "---",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+        ]
+    )
 
-    return "\n".join(lines)
+    return "\n".join(
+        lines
+    )
 
 
-def render(name: str, summaries: Sequence[dict]) -> str:
-    """Render newsletter section with summaries.
+def render(
+    name: str,
+    summaries: Sequence[SummaryEntry],
+) -> str:
+    """
+    Render a newsletter section.
 
     Args:
-        name: Section name (e.g., "🇮🇪 Ireland").
-        summaries: List of summary dictionaries.
+        name:
+            Section title.
+
+        summaries:
+            Stories in this section.
 
     Returns:
-        str: Formatted markdown section.
+        Markdown section.
     """
+
     if not summaries:
-        logger.warning(f"No summaries to render for {name}")
+        logger.warning(
+            "No summaries to render for %s",
+            name,
+        )
         return ""
 
-    out = [f"## {name}"]
+    output = [
+        f"## {name}",
+        "",
+    ]
 
-    for i, item in enumerate(summaries[:5], 1):
-        if isinstance(item, dict):
-            headline = item.get("headline", f"Story {i}")
-            summary_text = item.get("summary", "")
-            link = item.get("link", "")
-        else:
-            headline = f"Story {i}"
-            summary_text = item
-            link = ""
+    for index, item in enumerate(
+        summaries,
+        start=1,
+    ):
+        output.append(
+            f"### {item.get('headline', f'Story {index}')}"
+        )
 
-        out.append(f"### {headline}")
-        out.append("")
-        out.append(summary_text)
+        output.append(
+            ""
+        )
+
+        output.append(
+            item.get(
+                "summary",
+                "",
+            )
+        )
+
+        link = item.get(
+            "link",
+            "",
+        )
+
         if link:
-            out.append("")
-            out.append(f"[Read full article]({link})")
-        out.append("")
-        out.append("---")
-        out.append("")
+            output.extend(
+                [
+                    "",
+                    f"[Read full article]({link})",
+                ]
+            )
 
-    result = "\n".join(out)
-    logger.debug(f"Rendered {len(summaries)} summaries for {name}")
-    return result
+        output.extend(
+            [
+                "",
+                "---",
+                "",
+            ]
+        )
+
+    logger.debug(
+        "Rendered %d summaries for %s",
+        len(summaries),
+        name,
+    )
+
+    return "\n".join(
+        output
+    )

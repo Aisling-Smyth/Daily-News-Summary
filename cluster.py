@@ -4,53 +4,131 @@ from typing import List
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import DBSCAN
 
+from config import (
+    CLUSTER_EPS,
+    CLUSTER_MIN_SAMPLES,
+    EMBEDDING_MODEL,
+)
 from data_types import Story, StoryCluster
+
 
 logger = logging.getLogger(__name__)
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
 
-def cluster(stories: List[Story]) -> List[StoryCluster]:
-    """Cluster stories by semantic similarity using embeddings and DBSCAN.
+_model = None
+
+
+def get_model() -> SentenceTransformer:
+    """
+    Load the embedding model lazily.
+
+    Loading only when needed makes imports faster
+    and avoids unnecessary model loading during tests.
+    """
+
+    global _model
+
+    if _model is None:
+        logger.info(
+            "Loading embedding model: %s",
+            EMBEDDING_MODEL,
+        )
+        _model = SentenceTransformer(
+            EMBEDDING_MODEL
+        )
+
+    return _model
+
+
+def cluster(
+    stories: List[Story],
+) -> List[StoryCluster]:
+    """
+    Group related stories using semantic similarity.
 
     Args:
-        stories: List of story dictionaries with a 'title' field.
+        stories:
+            Stories to cluster.
 
     Returns:
-        List[StoryCluster]: Clusters of related story objects.
+        List of related story groups.
     """
+
     if not stories:
-        logger.warning("No stories to cluster")
+        logger.warning(
+            "No stories provided for clustering"
+        )
         return []
-    
-    logger.info(f"Clustering {len(stories)} stories...")
-    
-    titles = [s["title"] for s in stories]
-    
+
+    logger.info(
+        "Clustering %d stories",
+        len(stories),
+    )
+
+    titles = [
+        story["title"]
+        for story in stories
+    ]
+
     try:
-        logger.debug("Encoding titles with SentenceTransformer...")
-        emb = model.encode(titles)
-        
-        logger.debug("Running DBSCAN clustering...")
+        model = get_model()
+
+        embeddings = model.encode(
+            titles,
+            show_progress_bar=False,
+        )
+
         labels = DBSCAN(
-            eps=0.35,
-            min_samples=1,
-            metric="cosine"
-        ).fit_predict(emb)
-        
+            eps=CLUSTER_EPS,
+            min_samples=CLUSTER_MIN_SAMPLES,
+            metric="cosine",
+        ).fit_predict(
+            embeddings
+        )
+
         grouped = {}
-        for label, story in zip(labels, stories):
-            grouped.setdefault(label, []).append(story)
-        
-        clusters = list(grouped.values())
-        logger.info(f"Created {len(clusters)} clusters")
-        for i, c in enumerate(clusters):
-            logger.debug(f"Cluster {i}: {len(c)} stories")
-        
+
+        for label, story in zip(
+            labels,
+            stories,
+        ):
+            grouped.setdefault(
+                label,
+                [],
+            ).append(
+                story
+            )
+
+        clusters = list(
+            grouped.values()
+        )
+
+        logger.info(
+            "Created %d clusters",
+            len(clusters),
+        )
+
+        for index, item in enumerate(
+            clusters,
+            start=1,
+        ):
+            logger.debug(
+                "Cluster %d contains %d stories",
+                index,
+                len(item),
+            )
+
         return clusters
-    
-    except Exception as e:
-        logger.error(f"Clustering failed: {e}", exc_info=True)
-        # Fallback: return each story as its own cluster
-        logger.warning("Falling back to individual stories as clusters")
-        return [[s] for s in stories]
+
+    except Exception:
+        logger.error(
+            "Clustering failed",
+            exc_info=True,
+        )
+
+        # Graceful fallback:
+        # every story becomes its own cluster
+        return [
+            [story]
+            for story in stories
+        ]

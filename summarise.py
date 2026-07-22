@@ -1,119 +1,237 @@
 import logging
 import re
 from time import sleep
-from typing import List
+from typing import Any
 
 import requests
 
-from data_types import Story, StoryCluster
+from config import (
+    OLLAMA_MAX_RETRIES,
+    OLLAMA_MODEL,
+    OLLAMA_TIMEOUT,
+    OLLAMA_URL,
+)
+from data_types import StoryCluster
+
 
 logger = logging.getLogger(__name__)
 
-URL = "http://localhost:11434/api/generate"
-MODEL = "gemma3"
-TIMEOUT = 120  # seconds
-MAX_RETRIES = 3
 
+def sanitize_summary_output(
+    text: str,
+) -> str:
+    """
+    Clean and normalise LLM output.
 
-def sanitize_summary_output(text):
-    """Normalize LLM output to a concise factual format."""
+    Args:
+        text:
+            Raw model response.
+
+    Returns:
+        Clean markdown-friendly summary.
+    """
+
     if not text:
         return ""
 
-    cleaned = text.replace("\r\n", "\n").replace("\r", "\n").strip()
-    cleaned = re.sub(r"```[\w-]*", "", cleaned)
-    cleaned = cleaned.replace("**", "")
-
-    removal_patterns = [
-        r"(?im)^\s*(okay|here(?:'s| is)|this is|based on the headline provided|aiming for neutrality and conciseness|remain neutral and concise|would you like me to|would you like|please let me know|thanks for providing|i can help).*$",
-        r"(?im)^\s*(?:---|[-*_]{3,})\s*$",
-    ]
-    for pattern in removal_patterns:
-        cleaned = re.sub(pattern, "", cleaned)
-
-    cleaned = re.sub(r"(?im)^\s*(headline|summary|why it matters)\s*:\s*", "", cleaned)
-    cleaned = re.sub(r"\n{2,}", "\n\n", cleaned).strip()
-
-    return cleaned
-
-
-def summarise(cluster: StoryCluster) -> str:
-    """Summarize a cluster of news stories using Ollama.
-
-    Args:
-        cluster: List of story dicts with 'source' and 'title' keys.
-
-    Returns:
-        str: Generated summary from the LLM.
-
-    Raises:
-        Exception: If Ollama service is unavailable or LLM fails.
-    """
-    headlines = "\n".join(
-        f"- {s['source']}: {s['title']}"
-        for s in cluster
+    cleaned = (
+        text
+        .replace("\r\n", "\n")
+        .replace("\r", "\n")
+        .strip()
     )
 
-    prompt = f"""Summarise this news story as a concise but complete overview for a daily news digest.
+    cleaned = re.sub(
+        r"```[\w-]*",
+        "",
+        cleaned,
+    )
 
-Write two short paragraphs and keep the tone factual and neutral.
-Use plain prose, not bullet points or headings.
-The first paragraph should cover the main facts of the story.
-The second paragraph should explain why the story matters and any wider implications.
+    cleaned = cleaned.replace(
+        "**",
+        "",
+    )
 
-Do not use preambles, greetings, questions, markdown, or extra commentary.
+    removal_patterns = [
+        (
+            r"(?im)^\s*"
+            r"(okay|here(?:'s| is)|this is|"
+            r"based on the headline provided|"
+            r"would you like.*)"
+            r".*$"
+        ),
+        r"(?im)^\s*(?:---|[-*_]{3,})\s*$",
+    ]
 
-Headlines:
+    for pattern in removal_patterns:
+        cleaned = re.sub(
+            pattern,
+            "",
+            cleaned,
+        )
+
+    cleaned = re.sub(
+        r"(?im)^\s*"
+        r"(headline|summary|why it matters)"
+        r"\s*:\s*",
+        "",
+        cleaned,
+    )
+
+    cleaned = re.sub(
+        r"\n{3,}",
+        "\n\n",
+        cleaned,
+    )
+
+    return cleaned.strip()
+
+
+def build_prompt(
+    cluster: StoryCluster,
+) -> str:
+    """
+    Build summarisation prompt from grouped stories.
+    """
+
+    headlines = "\n".join(
+        f"- {story['source']}: {story['title']}"
+        for story in cluster
+    )
+
+    return f"""
+Summarise this news story as a concise but complete overview for a daily news digest.
+
+Write two short paragraphs in plain prose.
+
+The first paragraph should cover the main facts.
+The second paragraph should explain why it matters and any wider implications.
+
+Keep the tone factual and neutral.
+
+Do not use:
+- headings
+- bullet points
+- greetings
+- preambles
+- commentary about the writing process
+
+Stories:
 
 {headlines}
-"""
-    return send_prompt(prompt)
+""".strip()
 
-def send_prompt(prompt):
-    for attempt in range(1, MAX_RETRIES + 1):
+
+def summarise(
+    cluster: StoryCluster,
+) -> str:
+    """
+    Summarise a cluster of related news stories.
+
+    Args:
+        cluster:
+            Related stories from multiple sources.
+
+    Returns:
+        Generated summary text.
+    """
+
+    prompt = build_prompt(
+        cluster
+    )
+
+    return send_prompt(
+        prompt
+    )
+
+
+def send_prompt(
+    prompt: str,
+) -> str:
+    """
+    Send prompt to Ollama.
+
+    Args:
+        prompt:
+            Prompt text.
+
+    Returns:
+        Model response.
+
+    Raises:
+        Exception:
+            If Ollama cannot complete the request.
+    """
+
+    for attempt in range(
+        1,
+        OLLAMA_MAX_RETRIES + 1,
+    ):
         try:
-            logger.debug(f"Sending request to Ollama (attempt {attempt}/{MAX_RETRIES})")
-            r = requests.post(
-                URL,
+            logger.debug(
+                "Sending request to Ollama "
+                "attempt %d/%d",
+                attempt,
+                OLLAMA_MAX_RETRIES,
+            )
+
+            response = requests.post(
+                OLLAMA_URL,
                 json={
-                    "model": MODEL,
+                    "model": OLLAMA_MODEL,
                     "prompt": prompt,
                     "stream": False,
                 },
-                timeout=TIMEOUT,
+                timeout=OLLAMA_TIMEOUT,
             )
-            r.raise_for_status()
 
-            response = r.json()
-            if "response" not in response:
-                raise ValueError(f"Unexpected Ollama response format: {response}")
+            response.raise_for_status()
 
-            summary_text = sanitize_summary_output(response["response"])
-            logger.debug("Successfully summarized cluster")
-            return summary_text
-        
-        except requests.exceptions.ConnectionError as e:
-            logger.error(f"Connection failed to Ollama at {URL}: {e}")
-            if attempt < MAX_RETRIES:
-                wait_time = 2 ** attempt  # exponential backoff
-                logger.info(f"Retrying in {wait_time} seconds...")
-                sleep(wait_time)
-            else:
-                logger.error(f"Failed to connect to Ollama after {MAX_RETRIES} attempts")
-                raise
-        
+            data: Any = response.json()
+
+            if "response" not in data:
+                raise ValueError(
+                    "Unexpected Ollama response format"
+                )
+
+            return sanitize_summary_output(
+                data["response"]
+            )
+
+        except requests.exceptions.ConnectionError:
+            logger.error(
+                "Could not connect to Ollama"
+            )
+
         except requests.exceptions.Timeout:
-            logger.error(f"Timeout calling Ollama after {TIMEOUT}s")
-            if attempt < MAX_RETRIES:
-                logger.info(f"Retrying (attempt {attempt+1}/{MAX_RETRIES})...")
-                sleep(2)
-            else:
-                raise
-        
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request error: {e}")
+            logger.error(
+                "Ollama request timed out"
+            )
+
+        except requests.exceptions.RequestException:
+            logger.error(
+                "Ollama request failed",
+                exc_info=True,
+            )
             raise
-        
-        except (ValueError, KeyError) as e:
-            logger.error(f"Invalid response from Ollama: {e}")
+
+        except ValueError:
+            logger.error(
+                "Invalid Ollama response",
+                exc_info=True,
+            )
             raise
+
+        if attempt < OLLAMA_MAX_RETRIES:
+            wait = 2 ** attempt
+
+            logger.info(
+                "Retrying Ollama in %d seconds",
+                wait,
+            )
+
+            sleep(wait)
+
+    raise RuntimeError(
+        "Ollama unavailable after retries"
+    )
