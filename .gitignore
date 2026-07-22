@@ -220,5 +220,3 @@ __marimo__/
 # Project-specific
 logs/
 output/
-.env
-run_newsletter.sh
