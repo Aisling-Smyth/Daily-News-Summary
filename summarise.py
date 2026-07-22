@@ -17,9 +17,7 @@ from data_types import StoryCluster
 logger = logging.getLogger(__name__)
 
 
-def sanitize_summary_output(
-    text: str,
-) -> str:
+def sanitize_summary_output(text: str) -> str:
     """
     Clean and normalise LLM output.
 
@@ -28,7 +26,7 @@ def sanitize_summary_output(
             Raw model response.
 
     Returns:
-        Clean markdown-friendly summary.
+        Clean summary text.
     """
 
     if not text:
@@ -91,7 +89,7 @@ def build_prompt(
     cluster: StoryCluster,
 ) -> str:
     """
-    Build summarisation prompt from grouped stories.
+    Build prompt for summarising a story cluster.
     """
 
     headlines = "\n".join(
@@ -126,22 +124,18 @@ def summarise(
     cluster: StoryCluster,
 ) -> str:
     """
-    Summarise a cluster of related news stories.
+    Summarise a cluster of related stories.
 
     Args:
         cluster:
-            Related stories from multiple sources.
+            Related news stories.
 
     Returns:
-        Generated summary text.
+        Generated summary.
     """
 
-    prompt = build_prompt(
-        cluster
-    )
-
     return send_prompt(
-        prompt
+        build_prompt(cluster)
     )
 
 
@@ -153,14 +147,14 @@ def send_prompt(
 
     Args:
         prompt:
-            Prompt text.
+            Prompt sent to the model.
 
     Returns:
-        Model response.
+        Cleaned model response.
 
     Raises:
-        Exception:
-            If Ollama cannot complete the request.
+        RuntimeError:
+            If Ollama cannot complete request.
     """
 
     for attempt in range(
@@ -169,8 +163,8 @@ def send_prompt(
     ):
         try:
             logger.debug(
-                "Sending request to Ollama "
-                "attempt %d/%d",
+                "Calling Ollama (%s), attempt %d/%d",
+                OLLAMA_MODEL,
                 attempt,
                 OLLAMA_MAX_RETRIES,
             )
@@ -185,27 +179,39 @@ def send_prompt(
                 timeout=OLLAMA_TIMEOUT,
             )
 
+            if response.status_code >= 400:
+                logger.error(
+                    "Ollama returned HTTP %s",
+                    response.status_code,
+                )
+                logger.error(
+                    "Ollama response body: %s",
+                    response.text,
+                )
+
             response.raise_for_status()
 
             data: Any = response.json()
 
             if "response" not in data:
                 raise ValueError(
-                    "Unexpected Ollama response format"
+                    f"Unexpected Ollama response: {data}"
                 )
 
             return sanitize_summary_output(
                 data["response"]
             )
 
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
             logger.error(
-                "Could not connect to Ollama"
+                "Could not connect to Ollama: %s",
+                e,
             )
 
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout as e:
             logger.error(
-                "Ollama request timed out"
+                "Ollama timeout: %s",
+                e,
             )
 
         except requests.exceptions.RequestException:
@@ -223,14 +229,14 @@ def send_prompt(
             raise
 
         if attempt < OLLAMA_MAX_RETRIES:
-            wait = 2 ** attempt
+            delay = 2 ** attempt
 
             logger.info(
-                "Retrying Ollama in %d seconds",
-                wait,
+                "Retrying Ollama in %s seconds",
+                delay,
             )
 
-            sleep(wait)
+            sleep(delay)
 
     raise RuntimeError(
         "Ollama unavailable after retries"

@@ -30,14 +30,19 @@ jobs:
       - name: Start Ollama
         run: |
           ollama serve &
-          sleep 5
+          sleep 10
 
       - name: Download language model
         run: |
-          ollama pull gemma3
+          ollama pull gemma3:1b
+
+      - name: Check Ollama model
+        run: |
+          ollama list
 
       - name: Generate newsletter
         env:
+          OLLAMA_MODEL: gemma3:1b
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
