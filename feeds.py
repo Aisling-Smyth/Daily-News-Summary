@@ -61,10 +61,19 @@ POP_CULTURE_FEEDS: List[str] = [
     "https://abcnews.com/abcnews/entertainmentheadlines",
 ]
 
+TECH_FEEDS: List[str] = [
+    "https://www.wired.com/feed/tag/ai/latest/rss",
+    "https://aifornewsroom.in/api/rss",
+    "https://www.theverge.com/rss/index.xml",
+    "https://arstechnica.com/ai/feed/",
+    "https://techcrunch.com/feed/",
+]
+
 SECTIONS: List[Tuple[str, str, List[str]]] = [
     ("Ireland", "🇮🇪", IRISH_FEEDS),
     ("UK", "🇬🇧", UK_FEEDS),
     ("US", "🇺🇸", US_FEEDS),
     ("World", "🌍", WORLD_FEEDS),
     ("Pop Culture", "🎬", POP_CULTURE_FEEDS),
+    ("Tech and AI", "🤖", TECH_FEEDS),
 ]

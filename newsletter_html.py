@@ -3,6 +3,8 @@ import re
 from datetime import datetime
 import markdown
 
+from config import NEWSLETTER_URL
+
 
 def extract_title(markdown_text: str) -> tuple[str, str]:
     """Extract newsletter title and date from markdown heading."""
@@ -84,6 +86,21 @@ def render_newsletter_html(
     body = add_story_cards(body)
 
     safe_title = html.escape(title)
+
+    interactive_button = f"""
+    <a href="{NEWSLETTER_URL}" style="
+        display:inline-block;
+        background:#ffffff;
+        color:#111827 !important;
+        text-decoration:none;
+        padding:12px 24px;
+        border-radius:999px;
+        font-size:15px;
+        font-weight:700;
+    ">
+        🌐 Read the Interactive Edition
+    </a>
+    """
 
     return f"""
 <!DOCTYPE html>
@@ -256,9 +273,13 @@ h1 {{
 <h1 style="font-size:42px; font-weight:700; margin:0;">
 Up Smyth Creek
 </h1>
-<p style="margin:14px auto 0; font-size:18px; line-height:1.5; opacity:.88; max-width:600px;">
+
+<p style="margin:14px auto 24px; font-size:18px; line-height:1.5; opacity:.88; max-width:600px;">
 When the world's up the creek, we'll help you paddle.
 </p>
+
+{interactive_button}
+
 </td>
 </tr>
 

@@ -73,6 +73,11 @@ EMAIL_SEND_ENABLED = bool(
     and EMAIL_TO
 )
 
+NEWSLETTER_URL = os.environ.get(
+    "NEWSLETTER_URL",
+    "",
+)
+
 
 # ============================================================
 # Ollama
