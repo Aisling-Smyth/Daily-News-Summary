@@ -4,6 +4,7 @@ from datetime import datetime
 import markdown
 
 from config import NEWSLETTER_URL
+from styles import load_styles
 
 
 def extract_title(markdown_text: str) -> tuple[str, str]:
@@ -102,6 +103,23 @@ def render_newsletter_html(
     </a>
     """
 
+    archive_button = f"""
+    <a href="{NEWSLETTER_URL}archive.html" style="
+        display:inline-block;
+        background:#ffffff;
+        color:#111827 !important;
+        text-decoration:none;
+        padding:12px 24px;
+        border-radius:999px;
+        font-size:15px;
+        font-weight:700;
+    ">
+        📚 Archive
+    </a>
+    """
+
+    css = load_styles()
+
     return f"""
 <!DOCTYPE html>
 <html>
@@ -109,155 +127,11 @@ def render_newsletter_html(
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{safe_title}</title>
+
 <style>
-/* Reset styles for consistency across email clients */
-body, table, td, a {{
-    -webkit-text-size-adjust: 100%;
-    -ms-text-size-adjust: 100%;
-}}
-table, td {{
-    mso-table-lspace: 0pt;
-    mso-table-rspace: 0pt;
-}}
-img {{
-    -ms-interpolation-mode: bicubic;
-    border: 0;
-    height: auto;
-    line-height: 100%;
-    outline: none;
-    text-decoration: none;
-}}
-table {{
-    border-collapse: collapse !important;
-}}
-
-body {{
-    margin: 0 !important;
-    padding: 0 !important;
-    background-color: #ffffff !important;
-    font-family: Arial, Helvetica, sans-serif;
-    width: 100% !important;
-}}
-
-.email-wrapper {{
-    width: 100% !important;
-    background-color: #ffffff !important;
-    margin: 0;
-    padding: 0;
-}}
-
-.email-container {{
-    width: 100% !important;
-    max-width: 100% !important;
-    background: #ffffff !important;
-}}
-
-.header-section {{
-    background: #111827;
-    padding: 50px 30px;
-    color: white;
-    text-align: center;
-}}
-
-.content-section {{
-    padding: 40px 60px;
-    color: #111827;
-    font-size: 17px;
-    line-height: 1.75;
-}}
-
-.section-title {{
-    margin-top: 42px;
-    margin-bottom: 24px;
-}}
-
-.section-title h2 {{
-    font-size: 28px;
-    font-weight: 700;
-    border-bottom: 3px solid #111827;
-    padding-bottom: 10px;
-    margin: 0;
-}}
-
-.story-card {{
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 24px 28px;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}}
-
-.story-card h3 {{
-    margin: 0 0 14px;
-    font-size: 24px;
-    line-height: 1.3;
-    color: #111827;
-}}
-
-.story-card > p {{
-    margin: 0 0 18px;
-    font-size: 17px;
-    line-height: 1.75;
-    color: #374151;
-}}
-
-.story-card ul {{
-    margin-top: 12px;
-}}
-
-.story-card li {{
-    margin-bottom: 10px;
-    line-height: 1.7;
-}}
-
-.read-button {{
-    margin-top: 18px;
-}}
-
-.read-button a {{
-    display: inline-block;
-    background: #111827;
-    color: #ffffff !important;
-    text-decoration: none;
-    padding: 12px 20px;
-    border-radius: 999px;
-    font-size: 15px;
-    font-weight: 600;
-}}
-
-.footer-section {{
-    background: #f9fafb;
-    padding: 30px;
-    text-align: center;
-    font-size: 13px;
-    color: #6b7280;
-    border-top: 1px solid #e5e7eb;
-}}
-
-a {{
-    color: #2563eb;
-}}
-
-h1 {{
-    margin: 0;
-}}
-
-@media only screen and (max-width: 600px) {{
-    .content-section {{
-        padding: 25px 20px !important;
-    }}
-    .header-section {{
-        padding: 40px 20px !important;
-    }}
-    .story-card {{
-        padding: 18px;
-    }}
-    .section-title h2 {{
-        font-size: 24px;
-    }}
-}}
+{css}
 </style>
+
 </head>
 <body>
 
@@ -278,7 +152,11 @@ Up Smyth Creek
 When the world's up the creek, we'll help you paddle.
 </p>
 
-{interactive_button}
+<div style="text-align:center;">
+    {interactive_button}
+    &nbsp;&nbsp;
+    {archive_button}
+</div>
 
 </td>
 </tr>

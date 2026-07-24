@@ -17,6 +17,7 @@ from newsletter import (
     render,
     render_overview,
 )
+from styles import load_styles
 
 from newsletter_html import render_newsletter_html
 from quotes import quote_of_the_day
@@ -162,71 +163,96 @@ def generate_archive_page(
     archive_dir: Path,
 ) -> str:
     """
-    Generate an archive page listing previous editions.
+    Generate a styled archive page listing previous editions.
     """
+
+    # TODO: make it not ugly
+    # TODO: "← Back to today's edition"
 
     editions = sorted(
         archive_dir.glob("*.html"),
         reverse=True,
     )
 
-    links = []
+    cards = []
 
     for edition in editions:
         date = edition.stem
 
-        links.append(
+        try:
+            formatted_date = datetime.strptime(
+                date,
+                "%Y-%m-%d",
+            ).strftime(
+                "%A, %d %B %Y"
+            )
+        except ValueError:
+            formatted_date = date
+
+        cards.append(
             f"""
-            <li>
-                <a href="archive/{edition.name}">
-                    {date}
-                </a>
-            </li>
-            """
+<div class="archive-card">
+    <h2>
+        📖 {formatted_date}
+    </h2>
+
+    <p>
+        Catch up on the latest edition of Up Smyth Creek.
+    </p>
+
+    <a href="archive/{edition.name}">
+        Read edition →
+    </a>
+</div>
+"""
         )
+
+        css = load_styles()
 
     return f"""
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Up Smyth Creek Archive</title>
+
 <style>
-body {{
-    font-family: Arial, Helvetica, sans-serif;
-    max-width: 800px;
-    margin: 40px auto;
-    padding: 20px;
-    color: #111827;
-}}
-
-h1 {{
-    font-size: 36px;
-}}
-
-a {{
-    color: #2563eb;
-    text-decoration: none;
-}}
-
-li {{
-    margin: 12px 0;
-    font-size: 18px;
-}}
+{css}
 </style>
+
 </head>
 
 <body>
 
-<h1>📚 Up Smyth Creek Archive</h1>
+<div class="header">
+
+<h1>
+Up Smyth Creek
+</h1>
 
 <p>
-Previous editions of the newsletter.
+📚 Previous editions of your daily news paddle.
 </p>
 
-<ul>
-{"".join(links)}
-</ul>
+</div>
+
+
+<div class="container">
+
+<h2 class="title">
+Archive
+</h2>
+
+{"".join(cards)}
+
+</div>
+
+
+<div class="footer">
+Thanks for reading <strong>Up Smyth Creek</strong>.
+</div>
 
 </body>
 </html>
@@ -284,6 +310,7 @@ def main():
     )
 
     try:
+        # TODO: create HTMLs of past versions
         newsletter = generate_newsletter(
             today
         )
