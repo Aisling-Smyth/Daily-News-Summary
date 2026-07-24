@@ -294,7 +294,7 @@ When the world's up the creek, we'll help you paddle.
 <tr>
 <td class="footer-section">
 <p style="margin:0;">
-Thanks for reading <strong>Up Smyth Creek</strong>.
+That’s a wrap on today’s <strong>current</strong> news. Let's keep <strong>paddling</strong> along, and hope we don't land <strong>Up Smyth Creek</strong>!
 </p>
 </td>
 </tr>

@@ -158,6 +158,80 @@ def generate_newsletter(today: str) -> str:
 
     return newsletter
 
+def generate_archive_page(
+    archive_dir: Path,
+) -> str:
+    """
+    Generate an archive page listing previous editions.
+    """
+
+    editions = sorted(
+        archive_dir.glob("*.html"),
+        reverse=True,
+    )
+
+    links = []
+
+    for edition in editions:
+        date = edition.stem
+
+        links.append(
+            f"""
+            <li>
+                <a href="archive/{edition.name}">
+                    {date}
+                </a>
+            </li>
+            """
+        )
+
+    return f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Up Smyth Creek Archive</title>
+<style>
+body {{
+    font-family: Arial, Helvetica, sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    color: #111827;
+}}
+
+h1 {{
+    font-size: 36px;
+}}
+
+a {{
+    color: #2563eb;
+    text-decoration: none;
+}}
+
+li {{
+    margin: 12px 0;
+    font-size: 18px;
+}}
+</style>
+</head>
+
+<body>
+
+<h1>📚 Up Smyth Creek Archive</h1>
+
+<p>
+Previous editions of the newsletter.
+</p>
+
+<ul>
+{"".join(links)}
+</ul>
+
+</body>
+</html>
+"""
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -254,6 +328,20 @@ def main():
         archive_file.write_text(
             html_content,
             encoding="utf-8",
+        )
+
+        archive_page = html_dir / "archive.html"
+
+        archive_page.write_text(
+            generate_archive_page(
+                archive_dir
+            ),
+            encoding="utf-8",
+        )
+
+        logger.info(
+            "Archive page written to %s",
+            archive_page,
         )
 
         logger.info(
