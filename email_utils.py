@@ -72,13 +72,24 @@ def send_newsletter_email(
         newsletter_text
     )
 
-    html_body = render_newsletter_html(newsletter_text)
+    # Generate HTML once
+    html_body = render_newsletter_html(
+        newsletter_text
+    )
 
+    # HTML email body
     message.add_alternative(
         html_body,
         subtype="html",
     )
 
+    # HTML attachment
+    attach_html(
+        message,
+        html_body,
+    )
+
+    # Optional markdown attachment
     if attachment_path:
         attach_file(
             message,
@@ -110,6 +121,23 @@ def send_newsletter_email(
         return False
 
 
+def attach_html(
+    message: EmailMessage,
+    html_body: str,
+) -> None:
+    """
+    Attach the rendered newsletter
+    as an HTML file.
+    """
+
+    message.add_attachment(
+        html_body.encode("utf-8"),
+        maintype="text",
+        subtype="html",
+        filename="Up Smyth Creek.html",
+    )
+
+
 def attach_file(
     message: EmailMessage,
     attachment_path: Union[Path, str],
@@ -135,7 +163,6 @@ def attach_file(
         subtype="markdown",
         filename=path.name,
     )
-
 
 def send_tls_email(
     message: EmailMessage,

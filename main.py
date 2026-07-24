@@ -17,6 +17,8 @@ from newsletter import (
     render,
     render_overview,
 )
+
+from newsletter_html import render_newsletter_html
 from quotes import quote_of_the_day
 from cluster import cluster
 from rank import rank
@@ -224,6 +226,39 @@ def main():
         logger.info(
             "Newsletter written to %s",
             output_file,
+        )
+
+        html_dir = Path("site")
+        html_dir.mkdir(exist_ok=True)
+
+        html_content = render_newsletter_html(
+            newsletter
+        )
+
+        # Latest edition
+        html_file = html_dir / "index.html"
+
+        html_file.write_text(
+            html_content,
+            encoding="utf-8",
+        )
+
+        # Archive copy
+        archive_dir = html_dir / "archive"
+        archive_dir.mkdir(
+            exist_ok=True
+        )
+
+        archive_file = archive_dir / f"{today}.html"
+
+        archive_file.write_text(
+            html_content,
+            encoding="utf-8",
+        )
+
+        logger.info(
+            "HTML newsletter written to %s",
+            html_file,
         )
 
         if (
