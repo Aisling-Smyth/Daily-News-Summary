@@ -70,10 +70,10 @@ TECH_FEEDS: List[str] = [
 ]
 
 SECTIONS: List[Tuple[str, str, List[str]]] = [
-    ("Ireland", "🇮🇪", IRISH_FEEDS),
-    ("UK", "🇬🇧", UK_FEEDS),
-    ("US", "🇺🇸", US_FEEDS),
-    ("World", "🌍", WORLD_FEEDS),
-    ("Pop Culture", "🎬", POP_CULTURE_FEEDS),
+    # ("Ireland", "🇮🇪", IRISH_FEEDS),
+    # ("UK", "🇬🇧", UK_FEEDS),
+    # ("US", "🇺🇸", US_FEEDS),
+    # ("World", "🌍", WORLD_FEEDS),
+    # ("Pop Culture", "🎬", POP_CULTURE_FEEDS),
     ("Tech and AI", "🤖", TECH_FEEDS),
 ]

@@ -6,9 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 jobs:
   run-news:
@@ -54,14 +52,14 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          NEWSLETTER_URL: ${{ secrets.NEWSLETTER_URL }}
         run: |
           python main.py
-      
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy website
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: site
-      
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          keep_files: true
