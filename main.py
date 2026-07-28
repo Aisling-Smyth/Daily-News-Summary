@@ -32,6 +32,7 @@ from newsletter_html import (
     find_images,
     render_sections,
     render_toc,
+    render_email_summary,
     resolve_asset,
 )
 
@@ -117,8 +118,40 @@ def generate_section(
 
     return name, summaries
 
+def generate_sections():
+    """
+    Fetch and summarise stories.
+    Returns sections data for rendering.
+    """
 
-def generate_newsletter(today: str) -> str:
+    sections = []
+    raw_sections = []
+
+    for name, icon, feed_urls in SECTIONS:
+        section_name, summaries = generate_section(
+            f"{icon} {name}",
+            feed_urls,
+        )
+
+        from slugify import slugify
+
+        if summaries:
+            raw_sections.append(
+                (section_name, summaries)
+            )
+
+            sections.append(
+                {
+                    "id": slugify(name),
+                    "emoji": icon,
+                    "name": name,
+                    "stories": summaries,
+                }
+            )
+
+    return sections, raw_sections
+
+def generate_newsletter(today: str, sections, raw_sections) -> str:
     """
     Generate the complete HTML newsletter.
 
@@ -130,30 +163,7 @@ def generate_newsletter(today: str) -> str:
         HTML newsletter content.
     """
 
-    sections = []
-    raw_sections: List[Tuple[str, List[SummaryEntry]]] = []
-
-    # Images for story thumbnails
     story_images = find_images(IMAGES_DIR)
-
-    for name, icon, feed_urls in SECTIONS:
-        section_name, summaries = generate_section(
-            f"{icon} {name}",
-            feed_urls,
-        )
-
-        from slugify import slugify
-
-        if summaries:
-            raw_sections.append((section_name, summaries))
-            sections.append(
-                {
-                    "id": slugify(name),
-                    "emoji": icon,
-                    "name": name,
-                    "stories": summaries,
-                }
-            )
 
     if raw_sections:
         intro_blurb = generate_intro_blurb(today, raw_sections)
@@ -298,12 +308,6 @@ def main():
         help="Generate newsletter without sending email.",
     )
 
-    parser.add_argument(
-        "--attach",
-        action="store_true",
-        help="Attach markdown file to email.",
-    )
-
     args = parser.parse_args()
 
     today = datetime.now().strftime(
@@ -338,9 +342,16 @@ def main():
     )
 
     try:
+        sections, raw_sections = generate_sections()
+
         # TODO: create HTMLs of past versions
         newsletter = generate_newsletter(
-            today
+            today, sections, raw_sections
+        )
+
+        email_html = render_email_summary(
+            sections,
+            NEWSLETTER_URL,
         )
 
         output_file = output_dir / (
@@ -405,7 +416,7 @@ def main():
             and not args.no_email
         ):
             success = send_newsletter_email(
-                newsletter,
+                email_html,
                 subject=build_newsletter_title(today),
             )
 

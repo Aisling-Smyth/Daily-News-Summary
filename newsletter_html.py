@@ -144,6 +144,112 @@ def render_toc(all_sections):
     )
     return f'<nav class="toc">{links}</nav>'
 
+def render_email_summary(
+    all_sections,
+    newsletter_url,
+):
+    """
+    Render a lightweight HTML email summary.
+
+    The full illustrated newsletter lives on GitHub Pages.
+    This email only provides headlines and a link.
+    """
+
+    section_html = []
+
+    for section in all_sections:
+        stories = "\n".join(
+            f"""
+            <li>
+                {escape(story.get("headline", "Untitled"))}
+            </li>
+            """
+            for story in section["stories"][:2]
+        )
+
+        section_html.append(
+            f"""
+            <h3>
+                {section["emoji"]} {escape(section["name"])}
+            </h3>
+
+            <ul>
+                {stories}
+            </ul>
+            """
+        )
+
+    return f"""
+<!DOCTYPE html>
+<html>
+<body>
+
+<div style="
+    font-family: Arial, sans-serif;
+    max-width:600px;
+    margin:auto;
+    color:#213452;
+">
+
+<h1 style="text-align:center;">
+🌊 Up Smyth Creek
+</h1>
+
+<p style="text-align:center;">
+<i>
+When the world's up the creek, we'll help you paddle.
+</i>
+</p>
+
+
+<div style="
+    text-align:center;
+    margin:30px 0;
+">
+
+<a href="{newsletter_url}"
+style="
+background:#365a7c;
+color:white;
+padding:14px 24px;
+border-radius:20px;
+text-decoration:none;
+display:inline-block;
+">
+
+🐸 Open today's full edition
+
+</a>
+
+</div>
+
+
+<h2>
+Today's headlines
+</h2>
+
+{"".join(section_html)}
+
+
+<hr>
+
+<p style="
+font-size:12px;
+color:#666;
+text-align:center;
+">
+
+The full illustrated edition is waiting for you 🌿
+
+</p>
+
+
+</div>
+
+</body>
+</html>
+"""
+
 
 
 # ---------------------------------------------------------------------------

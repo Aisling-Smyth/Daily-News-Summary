@@ -19,15 +19,15 @@ logger = logging.getLogger(__name__)
 
 
 def send_newsletter_email(
-    newsletter_html: str,
+    email_html: str,
     subject: Optional[str] = None,
 ) -> bool:
     """
     Send the newsletter as an HTML email.
 
     Args:
-        newsletter_html:
-            Rendered HTML newsletter.
+        email_html:
+            Rendered email-safe HTML summary.
 
         subject:
             Optional email subject override.
@@ -56,7 +56,7 @@ def send_newsletter_email(
 
     # HTML body.
     message.add_alternative(
-        newsletter_html,
+        email_html,
         subtype="html",
     )
 
