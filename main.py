@@ -25,7 +25,7 @@ from summarise import summarise
 
 from config import NEWSLETTER_URL
 
-from create_html import (
+from newsletter_html import (
     HTML_TEMPLATE,
     IMAGES_DIR,
     LOGO_PATH,
@@ -360,49 +360,45 @@ def main():
         html_dir = Path("site")
         html_dir.mkdir(exist_ok=True)
 
-        # html_content = render_newsletter_html(
-        #     newsletter
-        # )
+        # Latest edition
+        html_file = html_dir / "index.html"
 
-        # # Latest edition
-        # html_file = html_dir / "index.html"
+        html_file.write_text(
+            newsletter,
+            encoding="utf-8",
+        )
 
-        # html_file.write_text(
-        #     html_content,
-        #     encoding="utf-8",
-        # )
+        # Archive copy
+        archive_dir = html_dir / "archive"
+        archive_dir.mkdir(
+            exist_ok=True
+        )
 
-        # # Archive copy
-        # archive_dir = html_dir / "archive"
-        # archive_dir.mkdir(
-        #     exist_ok=True
-        # )
+        archive_file = archive_dir / f"{today}.html"
 
-        # archive_file = archive_dir / f"{today}.html"
+        archive_file.write_text(
+            newsletter,
+            encoding="utf-8",
+        )
 
-        # archive_file.write_text(
-        #     html_content,
-        #     encoding="utf-8",
-        # )
+        archive_page = html_dir / "archive.html"
 
-        # archive_page = html_dir / "archive.html"
+        archive_page.write_text(
+            generate_archive_page(
+                archive_dir
+            ),
+            encoding="utf-8",
+        )
 
-        # archive_page.write_text(
-        #     generate_archive_page(
-        #         archive_dir
-        #     ),
-        #     encoding="utf-8",
-        # )
+        logger.info(
+            "Archive page written to %s",
+            archive_page,
+        )
 
-        # logger.info(
-        #     "Archive page written to %s",
-        #     archive_page,
-        # )
-
-        # logger.info(
-        #     "HTML newsletter written to %s",
-        #     html_file,
-        # )
+        logger.info(
+            "HTML newsletter written to %s",
+            html_file,
+        )
 
         if (
             EMAIL_SEND_ENABLED
@@ -410,7 +406,6 @@ def main():
         ):
             success = send_newsletter_email(
                 newsletter,
-                output_file if args.attach else None,
                 subject=build_newsletter_title(today),
             )
 

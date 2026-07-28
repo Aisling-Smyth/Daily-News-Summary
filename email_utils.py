@@ -1,9 +1,7 @@
 import logging
-import os
 import smtplib
 from email.message import EmailMessage
-from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 from config import (
     EMAIL_FROM,
@@ -16,154 +14,65 @@ from config import (
     SMTP_SERVER,
     SMTP_USERNAME,
 )
-from newsletter_html import render_newsletter_html
-
 
 logger = logging.getLogger(__name__)
 
 
 def send_newsletter_email(
-    newsletter_text: str,
-    attachment_path: Optional[
-        Union[Path, str]
-    ] = None,
+    newsletter_html: str,
     subject: Optional[str] = None,
 ) -> bool:
     """
-    Send newsletter by email.
+    Send the newsletter as an HTML email.
 
     Args:
-        newsletter_text:
-            Newsletter markdown content.
-
-        attachment_path:
-            Optional markdown attachment.
+        newsletter_html:
+            Rendered HTML newsletter.
 
         subject:
             Optional email subject override.
 
     Returns:
-        True if email sends successfully.
+        True if the email was sent successfully.
     """
 
     if not EMAIL_SEND_ENABLED:
         logger.warning(
-            "Email sending disabled: "
-            "SMTP settings incomplete"
+            "Email sending disabled: SMTP settings incomplete."
         )
         return False
 
     message = EmailMessage()
 
-    message["From"] = (
-        EMAIL_FROM
-        or SMTP_USERNAME
-    )
+    message["From"] = EMAIL_FROM or SMTP_USERNAME
+    message["To"] = ", ".join(EMAIL_TO)
+    message["Subject"] = subject or EMAIL_SUBJECT
 
-    message["To"] = ", ".join(
-        EMAIL_TO
-    )
-
-    message["Subject"] = (
-        subject
-        or EMAIL_SUBJECT
-    )
-
+    # Plain text fallback for email clients that don't support HTML.
     message.set_content(
-        newsletter_text
+        "Your email client doesn't support HTML.\n\n"
+        "Please view this newsletter in an HTML-capable email client."
     )
 
-    # Generate HTML once
-    html_body = render_newsletter_html(
-        newsletter_text
-    )
-
-    # HTML email body
+    # HTML body.
     message.add_alternative(
-        html_body,
+        newsletter_html,
         subtype="html",
     )
-
-    # HTML attachment
-    attach_html(
-        message,
-        html_body,
-    )
-
-    # Optional markdown attachment
-    if attachment_path:
-        attach_file(
-            message,
-            attachment_path,
-        )
 
     try:
         if EMAIL_USE_TLS:
-            send_tls_email(
-                message
-            )
+            send_tls_email(message)
         else:
-            send_ssl_email(
-                message
-            )
+            send_ssl_email(message)
 
-        logger.info(
-            "Newsletter email sent successfully"
-        )
-
+        logger.info("Newsletter email sent successfully.")
         return True
 
     except Exception:
-        logger.error(
-            "Failed to send newsletter email",
-            exc_info=True,
-        )
-
+        logger.exception("Failed to send newsletter email.")
         return False
 
-
-def attach_html(
-    message: EmailMessage,
-    html_body: str,
-) -> None:
-    """
-    Attach the rendered newsletter
-    as an HTML file.
-    """
-
-    message.add_attachment(
-        html_body.encode("utf-8"),
-        maintype="text",
-        subtype="html",
-        filename="Up Smyth Creek.html",
-    )
-
-
-def attach_file(
-    message: EmailMessage,
-    attachment_path: Union[Path, str],
-) -> None:
-    """
-    Attach markdown file if available.
-    """
-
-    path = Path(
-        attachment_path
-    )
-
-    if not path.exists():
-        logger.warning(
-            "Attachment not found: %s",
-            path,
-        )
-        return
-
-    message.add_attachment(
-        path.read_bytes(),
-        maintype="text",
-        subtype="markdown",
-        filename=path.name,
-    )
 
 def send_tls_email(
     message: EmailMessage,
@@ -177,7 +86,6 @@ def send_tls_email(
         SMTP_PORT,
         timeout=30,
     ) as smtp:
-
         smtp.ehlo()
         smtp.starttls()
         smtp.ehlo()
@@ -187,9 +95,7 @@ def send_tls_email(
             SMTP_PASSWORD,
         )
 
-        smtp.send_message(
-            message
-        )
+        smtp.send_message(message)
 
 
 def send_ssl_email(
@@ -204,12 +110,9 @@ def send_ssl_email(
         SMTP_PORT,
         timeout=30,
     ) as smtp:
-
         smtp.login(
             SMTP_USERNAME,
             SMTP_PASSWORD,
         )
 
-        smtp.send_message(
-            message
-        )
+        smtp.send_message(message)
