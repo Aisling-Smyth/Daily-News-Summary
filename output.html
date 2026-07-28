@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Up Smyth Creek</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Short+Stack&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --title-blue:   #213452;
+    --heading-blue: #365a7c;
+    --link-blue:    #5f7f9e;
+
+    --card-bg: #fdfdf9;
+    --page-bg: #dcebf1;
+}
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background: var(--page-bg);
+    padding: 40px 16px;
+    font-family: 'Short Stack', cursive;
+  }
+
+  .newsletter {
+    position: relative;
+    width: 100%;
+    max-width: 760px;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,0.55), transparent 40%),
+      radial-gradient(circle at 82% 88%, rgba(255,255,255,0.4), transparent 45%),
+      linear-gradient(165deg, #eef9fc 0%, #d7edf6 50%, #cfe7f3 100%);
+    border-radius: 30px;
+    box-shadow: 0 25px 50px rgba(35, 65, 85, 0.2);
+    padding: 36px 40px 50px;
+  }
+
+  /* ---------- Header ---------- */
+  .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding-bottom: 6px;
+    width: 100%;
+  }
+
+  .logo-hero {
+    width: 250px;
+    max-width: none;
+    height: auto;
+  }
+
+  .title-block { text-align: center; }
+
+  .title-block {
+    text-align: center;
+}
+
+.title-block h1 {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    color: var(--title-blue);
+    font-size: 2.3rem;
+    line-height: 1.05;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.subtitle {
+    font-family: 'Short Stack', cursive;
+    color: var(--heading-blue);
+    font-size: 0.9rem;
+    margin: 8px 0 0;
+    line-height: 1.4;
+}
+
+.category-card h2 {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 700;
+    color: var(--title-blue);
+    font-size: 1.25rem;
+    margin: 0 0 16px;
+}
+
+.story-body h3 {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 600;
+    color: var(--heading-blue);
+    font-size: 1.02rem;
+    line-height: 1.3;
+    margin: 0 0 4px;
+}
+
+.story-body p {
+    font-family: 'Short Stack', cursive;
+    color: #000;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0 0 6px;
+}
+
+.story-body .story-link {
+    font-family: 'Short Stack', cursive;
+    font-size: 0.82rem;
+    color: var(--link-blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.story-body .story-link:hover {
+    color: var(--heading-blue);
+}
+
+
+/* ---------- Category cards ---------- */
+.categories {
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  margin-top:28px;
+}
+
+.category-card{
+  position:relative;
+  background:var(--card-bg);
+  border-radius:22px;
+  padding:24px 26px;
+  box-shadow:0 6px 16px rgba(60,95,75,0.08);
+}
+
+.deco-critter{position:absolute;width:100px;height:auto;}
+.deco-critter.left{left:-20px;transform:rotate(-10deg);}
+.deco-critter.right{right:-20px;transform:rotate(10deg);}
+
+.stories{display:flex;flex-direction:column;gap:16px;}
+
+.story{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  padding-bottom:16px;
+  border-bottom:1px dashed rgba(60,95,75,0.18);
+}
+.story:last-child{border-bottom:none;padding-bottom:0;}
+
+.story-thumb{
+  width:72px;
+  height:72px;
+  object-fit:cover;
+  border-radius:12px;
+  flex-shrink:0;
+  border:2px solid var(--heading-blue);
+  background:var(--page-bg);
+}
+
+  /* ---------- Bottom row ---------- */
+  .bottom-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 28px;
+  }
+  .bottom-row img { width: 100px; height: auto; }
+
+  .footer {
+    text-align: center;
+    margin-top: 22px;
+    color: #000;
+    font-family: 'Short Stack', cursive;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 620px) {
+    .newsletter { padding: 30px 20px 36px; }
+    .header { flex-direction: column; gap: 8px; }
+    .logo-hero { width: 100px; }
+    .title-block h1 { font-size: 1.8rem; }
+    .deco-critter { display: none; }
+    .story-thumb { width: 56px; height: 56px; }
+    .bottom-row { flex-wrap: wrap; gap: 14px; }
+  }
+
+  /* ---------- Print ---------- */
+  @media print {
+    body { background: white; padding: 0; }
+    .newsletter { box-shadow: none; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="newsletter">
+
+  <table class="header" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td width="25%" align="center">
+        <img class="logo-hero" src="images/logo.png" alt="Logo">
+      </td>
+
+      <td width="75%" align="center">
+        <div class="title-block">
+          <h1>Up Smyth Creek</h1>
+          <p class="subtitle">When the world's up the creek, we'll help you paddle.</p>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="categories">
+    
+    <section class="category-card" id="ireland">
+      <img class="deco-critter left" src="images/heron/heron_walking.png" alt="" style="top: 47%;">
+      <h2>🇮🇪 Ireland</h2>
+      <div class="stories">
+        
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+      </div>
+    </section>
+    
+
+    <section class="category-card" id="uk">
+      <img class="deco-critter right" src="images/kingfisher/kingfisher_standing.png" alt="" style="top: 45%;">
+      <h2>🇬🇧 UK</h2>
+      <div class="stories">
+        
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+      </div>
+    </section>
+    
+
+    <section class="category-card" id="us">
+      <img class="deco-critter left" src="images/ducks/brown_duck_standing.png" alt="" style="top: 48%;">
+      <h2>🇺🇸 US</h2>
+      <div class="stories">
+        
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+      </div>
+    </section>
+    
+
+    <section class="category-card" id="world">
+      <img class="deco-critter right" src="images/platypus/platypus_swimming.png" alt="" style="top: 57%;">
+      <h2>🌍 World</h2>
+      <div class="stories">
+        
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+      </div>
+    </section>
+    
+
+    <section class="category-card" id="popculture">
+      <img class="deco-critter left" src="images/deer/deer_sitting.png" alt="" style="top: 22%;">
+      <h2>🎬 Pop Culture</h2>
+      <div class="stories">
+        
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+      </div>
+    </section>
+    
+
+    <section class="category-card" id="techai">
+      <img class="deco-critter right" src="images/ducks/brown_duck_flying.png" alt="" style="top: 47%;">
+      <h2>🤖 Tech/AI</h2>
+      <div class="stories">
+        
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+
+        <article class="story">
+          
+          <div class="story-body">
+            <h3>Headline goes here</h3>
+            <p>One to two sentence summary of the story.</p>
+            <a class="story-link" href="#" target="_blank" rel="noopener">Read more &rarr;</a>
+          </div>
+        </article>
+    
+      </div>
+    </section>
+    
+  </div>
+
+<!-- FOOTER -->
+  <table class="footer" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td class="footer-section" align="center">
+<p style="margin:0; font-size:13px; color:#666;">
+  That’s a wrap on today’s
+  <b style="font-weight:900; color:var(--title-blue);">current</b>
+  news. Let's keep
+  <b style="font-weight:900; color:var(--title-blue);">paddling</b>
+  along, and hope we don't land
+  <b style="font-weight:900; color:var(--title-blue);">Up Smyth Creek</b>!
+</p>
+
+        <p style="margin:15px 0 0;">
+          🛶 <a href="https://aisling-smyth.github.io/Daily-News-Summary/archive.html" style="color: var(--heading-blue);">Read past editions</a> |
+          📬 <a href="{unsubscribe_url}" style="color: var(--heading-blue);">Unsubscribe</a>
+        </p>
+      </td>
+    </tr>
+  </table>
+
+</div>
+
+</body>
+</html>

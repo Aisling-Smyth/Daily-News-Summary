@@ -33,6 +33,19 @@ def build_newsletter_title(
 
     return f"Daily News Summary: {date_text}"
 
+def generate_intro_blurb(
+    today: str,
+    sections: Sequence[Tuple[str, List[SummaryEntry]]],
+) -> str:
+    """The AI-written intro paragraph for the newsletter."""
+    section_context = "\n".join(
+        f"{name}: {build_section_overview(items)}"
+        for name, items in sections
+    )
+    prompt = load_prompt("newsletter_intro.txt")
+    blurb = send_prompt(prompt.format(sections=section_context))
+    return clean_intro_output(blurb)
+
 
 def build_section_overview(
     items: Sequence[SummaryEntry],
