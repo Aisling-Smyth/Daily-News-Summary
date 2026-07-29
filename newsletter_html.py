@@ -525,46 +525,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 .quote-content{
     position:absolute;
-
-    /* Position over the cloud */
-    left:47%;
-    top:3%;
-
-    /* Size of the text area inside the cloud */
-    width:40%;
-    height:30%;
+    left:49%;
+    top:9%;
+    width:43%;
+    height:25%;
 
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
+    gap: 4%; /* relative to container height, replaces margin-top on author */
 
     text-align:center;
-    outline:2px solid lime;
-}
-
-.quote-content h3{
-    margin:0 0 18px;
-
-    font-family:'Baloo 2', cursive;
-    font-size:1.6rem;
-    color:var(--title-blue);
+    overflow:hidden;
 }
 
 .quote-content blockquote{
     margin:0;
-
     font-family:'Short Stack', cursive;
     font-size:2rem;
-    line-height:1.4;
+    line-height:1.15; /* was 1.3 — less leading top/bottom */
     font-style:italic;
-
     color:var(--heading-blue);
 }
 
 .quote-author{
-    margin-top:22px;
-
+    margin-top: 0;
+    margin-bottom: -0.15em; /* pulls up to cancel reserved descender space */
+    line-height: 1;
     font-family:'Baloo 2', cursive;
     font-size:1.4rem;
     font-weight:700;
@@ -617,9 +605,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="quote-content">
 
         <blockquote>
-            "{quote}"
+            {quote}
         </blockquote>
-
         <p class="quote-author">
             — {author}
         </p>
@@ -654,27 +641,49 @@ function fitText(container) {
     const quote = container.querySelector("blockquote");
     const author = container.querySelector(".quote-author");
     const title = container.querySelector("h3");
+    const els = [title, quote, author].filter(Boolean);
 
-    let size = 34;          // starting font size
-    const minSize = 14;
+    const containerRect = container.getBoundingClientRect();
 
-    while (size > minSize) {
+    function fits() {
+        let top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
+        els.forEach(el => {
+            const r = el.getBoundingClientRect();
+            top = Math.min(top, r.top);
+            left = Math.min(left, r.left);
+            right = Math.max(right, r.right);
+            bottom = Math.max(bottom, r.bottom);
+        });
+        return (right - left) <= containerRect.width && (bottom - top) <= containerRect.height;
+    }
+
+    function applySize(size) {
         quote.style.fontSize = size + "px";
         author.style.fontSize = (size * 0.65) + "px";
-        title.style.fontSize = (size * 0.8) + "px";
-
-        if (
-            container.scrollHeight <= container.clientHeight &&
-            container.scrollWidth <= container.clientWidth
-        ) {
-            break;
-        }
-
-        size--;
+        if (title) title.style.fontSize = (size * 0.8) + "px";
     }
-}
 
+    // Phase 1: shrink until it fits
+    let size = 34;
+    const minSize = 12;
+    applySize(size);
+    while (!fits() && size > minSize) {
+        size -= 1;
+        applySize(size);
+    }
+
+    // Phase 2: grow back up until it just stops fitting, then back off one step
+    while (fits()) {
+        size += 0.5;
+        applySize(size);
+    }
+    size -= 0.5;
+    applySize(size);
+}
 window.addEventListener("load", () => {
+    document.querySelectorAll(".quote-content").forEach(fitText);
+});
+window.addEventListener("resize", () => {
     document.querySelectorAll(".quote-content").forEach(fitText);
 });
 </script>

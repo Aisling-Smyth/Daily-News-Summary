@@ -202,8 +202,7 @@ def render_full_newsletter(today: str, sections, raw_sections) -> str:
         .replace("{NEWSLETTER_URL}", NEWSLETTER_URL)
         .replace("{quote}", quote)
         .replace("{author}", author)
-        .replace("{quote_scene}", resolve_asset("images/quote_otter.png"),
-)
+        .replace("{quote_scene}", resolve_asset("images/quote_otter.png"))
     )
 
 
