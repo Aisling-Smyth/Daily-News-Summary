@@ -37,8 +37,23 @@ def find_images(folder):
     ]
 
 
+from urllib.parse import urlparse
+
+def get_github_repo():
+    parsed = urlparse(NEWSLETTER_URL)
+
+    owner = parsed.netloc.split(".")[0]
+    repo = parsed.path.strip("/").split("/")[0]
+
+    return owner, repo
+
+
 def resolve_asset(path):
-    return f"https://raw.githubusercontent.com/Aisling-Smyth/Daily-News-Summary/main/{path}"
+    GITHUB_OWNER, GITHUB_REPO = get_github_repo()
+    return (
+        f"https://raw.githubusercontent.com/"
+        f"{GITHUB_OWNER}/{GITHUB_REPO}/main/{path}"
+    )
 
 
 # ---------------------------------------------------------------------------
