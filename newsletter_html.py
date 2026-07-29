@@ -569,20 +569,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     color:#222;
 }
 
-.daily-extra{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:24px;
-    margin:40px 0 10px;
+.daily-extra {
+    display: flex;
+    align-items: stretch;   /* <-- important */
+    gap: 24px;
+    margin: 40px 0;
 }
 
-.extra-card{
-    flex:1;
-    background:var(--card-bg);
-    border-radius:20px;
-    padding:20px;
-    box-shadow:0 6px 16px rgba(60,95,75,.08);
+.extra-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 6px 16px rgba(60,95,75,.08);
 }
 
 .extra-card h3{
@@ -604,11 +607,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     font-size:.92rem;
 }
 
-.quote-footer{
-    position:relative;
-    flex:1.3;
-    min-width:420px;
-    max-width:560px;
+.quote-footer {
+    flex: 1.3;
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
   /* ---------- Print ---------- */
@@ -674,7 +677,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
 
     <div class="extra-card celebrate-card">
-        <h3>🎉 Today's Reason to Celebrate</h3>
+        <h3>🎉 Today's Reasons to Celebrate</h3>
         {fun_day_html}
     </div>
 
