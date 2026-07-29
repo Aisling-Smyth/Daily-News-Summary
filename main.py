@@ -29,8 +29,6 @@ from config import NEWSLETTER_URL
 
 from newsletter_html import (
     HTML_TEMPLATE,
-    IMAGES_DIR,
-    LOGO_PATH,
     find_images,
     render_sections,
     render_toc,
@@ -39,8 +37,6 @@ from newsletter_html import (
     quote_of_the_day,
     resolve_asset,
 )
-import os
-QUOTE_PATH = os.path.join(IMAGES_DIR, "otter/otter_thinking.png")
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +210,7 @@ def render_full_newsletter(today: str, sections, raw_sections) -> str:
     html = (html
         .replace("{safe_title}", escape(title))
         .replace("{overview_heading}", escape(f"Daily News Summary: {today}"))
-        .replace("{logo_url}", resolve_asset(LOGO_PATH))
+        .replace("{logo_url}", resolve_asset("images/logo.png"))
         .replace("{intro_blurb}", escape(intro_blurb))
         .replace("{toc_html}", toc_html)
         .replace("{sections_html}", sections_html)

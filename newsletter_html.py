@@ -18,8 +18,6 @@ import feedparser
 # ---------------------------------------------------------------------------
 # CONFIG -- adjust these for your machine/project
 # ---------------------------------------------------------------------------
-IMAGES_DIR = "images"   
-LOGO_PATH = os.path.join(IMAGES_DIR, "logo.png")       # folder of decorative critter illustrations
 OUTPUT_FILE = "output.html"
 
 # ---------------------------------------------------------------------------
@@ -40,7 +38,7 @@ def find_images(folder):
 
 
 def resolve_asset(path):
-    return f"{NEWSLETTER_URL.rstrip('/')}/{path}"
+    return f"https://raw.githubusercontent.com/Aisling-Smyth/Daily-News-Summary/main/{path}"
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +52,7 @@ def render_story(story, critter_image=None, side="left"):
 
         critter_html = (
             f'<img class="story-critter {side}" '
-            f'src="{escape(critter_image, quote=True)}" alt="" '
+            f'src={critter_image} alt="" '
             f'style="top:{top}%; transform:rotate({rotation}deg);">'
         )
 
@@ -626,7 +624,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <table class="header" width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td width="25%" align="center">
-        <img class="logo-hero" src="{logo_url}" alt="Logo">
+        <img class="logo-hero" src={logo_url} alt="Logo">
       </td>
 
       <td width="75%" align="center">
@@ -657,7 +655,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="quote-footer">
 
         <img
-            src="{quote_scene}"
+            src={quote_scene}
             class="quote-scene"
             alt=""
         >
