@@ -10,11 +10,11 @@ from typing import List, Tuple
 
 IRISH_FEEDS: List[str] = [
     "https://www.rte.ie/feeds/rss/?index=/news/",
-    # "https://feeds.feedburner.com/ieireland",
-    # "https://www.independent.ie/irish-news/rss/",
-    # "https://feeds.breakingnews.ie/bntopstories?format=xml",
-    # "https://www.thejournal.ie/feed/",
-    # "https://limerickleader.ie/rss",
+    "https://feeds.feedburner.com/ieireland",
+    "https://www.independent.ie/irish-news/rss/",
+    "https://feeds.breakingnews.ie/bntopstories?format=xml",
+    "https://www.thejournal.ie/feed/",
+    "https://limerickleader.ie/rss",
 ]
 
 
@@ -71,9 +71,9 @@ TECH_FEEDS: List[str] = [
 
 SECTIONS: List[Tuple[str, str, List[str]]] = [
     ("Ireland", "🇮🇪", IRISH_FEEDS),
-    # ("UK", "🇬🇧", UK_FEEDS),
-    # ("US", "🇺🇸", US_FEEDS),
-    # ("World", "🌍", WORLD_FEEDS),
-    # ("Pop Culture", "🎬", POP_CULTURE_FEEDS),
-    # ("Tech and AI", "🤖", TECH_FEEDS),
+    ("UK", "🇬🇧", UK_FEEDS),
+    ("US", "🇺🇸", US_FEEDS),
+    ("World", "🌍", WORLD_FEEDS),
+    ("Pop Culture", "🎬", POP_CULTURE_FEEDS),
+    ("Tech and AI", "🤖", TECH_FEEDS),
 ]
