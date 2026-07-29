@@ -512,8 +512,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 .quote-footer{
     position:relative;
-    width:900px;
-    max-width:100%;
+    width: 500px; /* was 900px — bring down to a scale that matches category-card width */
+    max-width: 100%;
     margin:40px auto 20px;
 }
 
