@@ -484,13 +484,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 .story-critter{
   position:absolute;
-  width: auto;
-  height:150px;
-  object-fit:contain;
+  width: 80px;         /* fixed box for every critter */
+  height: auto;
+  object-fit: contain;  /* scales down to fit, preserves aspect ratio, no cropping */
   pointer-events:none;
 }
-.story-critter.left{left:-130px;}
-.story-critter.right{right:-150px;}
+
+.story-critter.left{
+  right: 100%;
+  margin-right: 10px;   /* box reaches 48+10 = 58px into the gutter, safely under the 70px padding */
+}
+
+.story-critter.right{
+  left: 100%;
+  margin-left: 10px;
+}
 
   /* ---------- Bottom row ---------- */
   .bottom-row {
