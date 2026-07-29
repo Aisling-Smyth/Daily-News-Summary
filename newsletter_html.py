@@ -28,21 +28,19 @@ OUTPUT_FILE = "output.html"
 
 def find_images(folder):
     exts = {".png", ".jpg", ".jpeg", ".webp", ".svg"}
-    base = Path(folder).resolve()
+    base = Path(folder)
 
     return [
-        p.as_uri()
+        p.relative_to(base.parent).as_posix()
         for p in base.rglob("*")
         if p.suffix.lower() in exts
-        and "originals" not in (part.lower() for part in p.parts)
+        and "originals" not in {part.lower() for part in p.parts}
         and p.stem.lower() != "logo"
     ]
 
 
-def resolve_asset(path_str):
-    """Turn a path like 'images/logo.png' into an absolute file:// URI so it
-    resolves correctly no matter which folder the final HTML is written to."""
-    return Path(path_str).resolve().as_uri()
+def resolve_asset(path):
+    return f"{NEWSLETTER_URL.rstrip('/')}/{path}"
 
 
 # ---------------------------------------------------------------------------

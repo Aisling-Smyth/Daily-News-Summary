@@ -37,6 +37,7 @@ from newsletter_html import (
     render_email_summary,
     resolve_asset,
     quote_of_the_day,
+    resolve_asset,
 )
 import os
 QUOTE_PATH = os.path.join(IMAGES_DIR, "otter/otter_thinking.png")
@@ -168,7 +169,7 @@ def render_full_newsletter(today: str, sections, raw_sections) -> str:
         HTML newsletter content.
     """
 
-    story_images = find_images(IMAGES_DIR)
+    story_images = [resolve_asset(p) for p in find_images("images")]
 
     if raw_sections:
         intro_blurb = generate_intro_blurb(today, raw_sections)

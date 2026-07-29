@@ -221,6 +221,5 @@ __marimo__/
 logs/
 output/
 .DS_Store
-Images/
 site/
 feeds.py
