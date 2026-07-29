@@ -12,6 +12,8 @@ import random
 from html import escape
 from pathlib import Path
 from config import NEWSLETTER_URL
+from config import QUOTE_FEED_URL
+import feedparser
 
 # ---------------------------------------------------------------------------
 # CONFIG -- adjust these for your machine/project
@@ -19,25 +21,6 @@ from config import NEWSLETTER_URL
 IMAGES_DIR = "images"   
 LOGO_PATH = os.path.join(IMAGES_DIR, "logo.png")       # folder of decorative critter illustrations
 OUTPUT_FILE = "output.html"
-
-# ---------------------------------------------------------------------------
-# CONTENT -- replace with your real stories for each edition
-# ---------------------------------------------------------------------------
-PLACEHOLDER_STORY = {
-    "headline": "Headline goes here",
-    "body": "One to two sentence summary of the story.",
-    "image": None,   # optional per-story thumbnail path/URL
-    "link": "#",     # optional source URL
-}
-
-sections = [
-    {"id": "ireland",    "emoji": "🇮🇪", "name": "Ireland",      "stories": [dict(PLACEHOLDER_STORY) for _ in range(3)]},
-    {"id": "uk",          "emoji": "🇬🇧", "name": "UK",           "stories": [dict(PLACEHOLDER_STORY) for _ in range(3)]},
-    {"id": "us",          "emoji": "🇺🇸", "name": "US",           "stories": [dict(PLACEHOLDER_STORY) for _ in range(3)]},
-    {"id": "world",       "emoji": "🌍", "name": "World",        "stories": [dict(PLACEHOLDER_STORY) for _ in range(3)]},
-    {"id": "popculture",  "emoji": "🎬", "name": "Pop Culture",  "stories": [dict(PLACEHOLDER_STORY) for _ in range(3)]},
-    {"id": "techai",      "emoji": "🤖", "name": "Tech/AI",      "stories": [dict(PLACEHOLDER_STORY) for _ in range(3)]},
-]
 
 # ---------------------------------------------------------------------------
 # Image discovery
@@ -251,6 +234,48 @@ The full illustrated edition is waiting for you 🌿
 """
 
 
+"""
+Quote retrieval for the newsletter.
+"""
+
+import logging
+from html import escape
+
+import feedparser
+
+from config import QUOTE_FEED_URL
+
+logger = logging.getLogger(__name__)
+
+
+def quote_of_the_day() -> str:
+    """
+    Fetch and format the quote of the day.
+
+    Returns:
+        HTML for the quote section.
+    """
+
+    try:
+        feed = feedparser.parse(QUOTE_FEED_URL)
+
+        if not feed.entries:
+            logger.warning("No quote found")
+            return ""
+
+        entry = feed.entries[0]
+
+        author = getattr(entry, "title", "Unknown")
+        quote = getattr(entry, "description", "")
+
+        if not quote:
+            return ""
+
+        return quote, author
+
+    except Exception:
+        logger.exception("Failed to retrieve quote of the day")
+        return ""
 
 # ---------------------------------------------------------------------------
 # HTML template
@@ -485,6 +510,67 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .bottom-row { flex-wrap: wrap; gap: 14px; }
   }
 
+.quote-footer{
+    position:relative;
+    width:900px;
+    max-width:100%;
+    margin:40px auto 20px;
+}
+
+.quote-scene{
+    display:block;
+    width:100%;
+    height:auto;
+}
+
+.quote-content{
+    position:absolute;
+
+    /* Position over the cloud */
+    left:47%;
+    top:3%;
+
+    /* Size of the text area inside the cloud */
+    width:40%;
+    height:30%;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+
+    text-align:center;
+    outline:2px solid lime;
+}
+
+.quote-content h3{
+    margin:0 0 18px;
+
+    font-family:'Baloo 2', cursive;
+    font-size:1.6rem;
+    color:var(--title-blue);
+}
+
+.quote-content blockquote{
+    margin:0;
+
+    font-family:'Short Stack', cursive;
+    font-size:2rem;
+    line-height:1.4;
+    font-style:italic;
+
+    color:var(--heading-blue);
+}
+
+.quote-author{
+    margin-top:22px;
+
+    font-family:'Baloo 2', cursive;
+    font-size:1.4rem;
+    font-weight:700;
+    color:#222;
+}
+
   /* ---------- Print ---------- */
   @media print {
     body { background: white; padding: 0; }
@@ -520,6 +606,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     {sections_html}
   </div>
 
+<div class="quote-footer">
+
+    <img
+        src="{quote_scene}"
+        class="quote-scene"
+        alt=""
+    >
+
+    <div class="quote-content">
+
+        <blockquote>
+            "{quote}"
+        </blockquote>
+
+        <p class="quote-author">
+            — {author}
+        </p>
+
+    </div>
+
+</div>
+
 <!-- FOOTER -->
   <table class="footer" width="100%" cellpadding="0" cellspacing="0">
     <tr>
@@ -534,44 +642,42 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </p>
 
         <p style="margin:15px 0 0;">
-          🛶 <a href="{NEWSLETTER_URL}archive.html" style="color: var(--heading-blue);">Read past editions</a>
+          🛶 <a href="{NEWSLETTER_URL}archive.html" style="color: var(--heading-blue);"><b style="font-weight:900;">Float upstream</b> to past editions</a>
         </p>
       </td>
     </tr>
   </table>
 
 </div>
+<script>
+function fitText(container) {
+    const quote = container.querySelector("blockquote");
+    const author = container.querySelector(".quote-author");
+    const title = container.querySelector("h3");
 
+    let size = 34;          // starting font size
+    const minSize = 14;
+
+    while (size > minSize) {
+        quote.style.fontSize = size + "px";
+        author.style.fontSize = (size * 0.65) + "px";
+        title.style.fontSize = (size * 0.8) + "px";
+
+        if (
+            container.scrollHeight <= container.clientHeight &&
+            container.scrollWidth <= container.clientWidth
+        ) {
+            break;
+        }
+
+        size--;
+    }
+}
+
+window.addEventListener("load", () => {
+    document.querySelectorAll(".quote-content").forEach(fitText);
+});
+</script>
 </body>
 </html>
 """
-
-# ---------------------------------------------------------------------------
-# Assemble
-# ---------------------------------------------------------------------------
-def main():
-    images = find_images(IMAGES_DIR)
-
-    sections_html = render_sections(sections, images)
-
-    html = (
-        HTML_TEMPLATE
-        .replace("{sections_html}", sections_html)
-        .replace("{bottom_row_html}", "")
-        .replace("{logo_url}", resolve_asset(LOGO_PATH))
-        .replace("{overview_heading}", "Daily News Summary: 2026-01-01 (placeholder)")
-        .replace("{intro_blurb}", "Placeholder intro blurb -- replace with generate_intro_blurb() output.")
-        .replace("{toc_html}", render_toc(sections))
-        .replace("{NEWSLETTER_URL}", NEWSLETTER_URL)
-        .replace("{safe_title}", "Up Smyth Creek")
-    )
-
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.write(html)
-
-    total_stories = sum(len(s["stories"]) for s in sections)
-    print(f"Wrote {OUTPUT_FILE} -- {len(sections)} sections, {total_stories} stories, {len(images)} images found in {IMAGES_DIR}/")
-
-
-if __name__ == "__main__":
-    main()

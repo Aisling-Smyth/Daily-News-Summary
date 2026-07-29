@@ -34,7 +34,10 @@ from newsletter_html import (
     render_toc,
     render_email_summary,
     resolve_asset,
+    quote_of_the_day,
 )
+import os
+QUOTE_PATH = os.path.join(IMAGES_DIR, "otter/otter_thinking.png")
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +154,7 @@ def generate_sections():
 
     return sections, raw_sections
 
-def generate_newsletter(today: str, sections, raw_sections) -> str:
+def render_full_newsletter(today: str, sections, raw_sections) -> str:
     """
     Generate the complete HTML newsletter.
 
@@ -184,16 +187,25 @@ def generate_newsletter(today: str, sections, raw_sections) -> str:
         story_images,  # floating critters
     )
 
+    quote, author = quote_of_the_day()
+
     title = "Up Smyth Creek"
     html = HTML_TEMPLATE
 
-    html = html.replace("{safe_title}", escape(title))
-    html = html.replace("{overview_heading}", escape(f"Daily News Summary: {today}"))
-    html = html.replace("{logo_url}", resolve_asset(LOGO_PATH))
-    html = html.replace("{intro_blurb}", escape(intro_blurb))
-    html = html.replace("{toc_html}", toc_html)
-    html = html.replace("{sections_html}", sections_html)
-    html = html.replace("{NEWSLETTER_URL}", NEWSLETTER_URL)
+    html = (html
+        .replace("{safe_title}", escape(title))
+        .replace("{overview_heading}", escape(f"Daily News Summary: {today}"))
+        .replace("{logo_url}", resolve_asset(LOGO_PATH))
+        .replace("{intro_blurb}", escape(intro_blurb))
+        .replace("{toc_html}", toc_html)
+        .replace("{sections_html}", sections_html)
+        .replace("{NEWSLETTER_URL}", NEWSLETTER_URL)
+        .replace("{quote}", quote)
+        .replace("{author}", author)
+        .replace("{quote_scene}", resolve_asset("images/quote_otter.png"),
+)
+    )
+
 
     return html
 
@@ -345,7 +357,7 @@ def main():
         sections, raw_sections = generate_sections()
 
         # TODO: create HTMLs of past versions
-        newsletter = generate_newsletter(
+        full_html = render_full_newsletter(
             today, sections, raw_sections
         )
 
@@ -359,7 +371,7 @@ def main():
         )
 
         output_file.write_text(
-            newsletter,
+            full_html,
             encoding="utf-8",
         )
 
@@ -375,7 +387,7 @@ def main():
         html_file = html_dir / "index.html"
 
         html_file.write_text(
-            newsletter,
+            full_html,
             encoding="utf-8",
         )
 
@@ -388,7 +400,7 @@ def main():
         archive_file = archive_dir / f"{today}.html"
 
         archive_file.write_text(
-            newsletter,
+            full_html,
             encoding="utf-8",
         )
 
