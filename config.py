@@ -173,3 +173,5 @@ CLUSTER_MIN_SAMPLES = int(
         "1",
     )
 )
+
+ON_THIS_DAY_TIMEOUT = 10  # seconds
