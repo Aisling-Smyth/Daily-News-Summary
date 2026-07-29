@@ -512,9 +512,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 .quote-footer{
     position:relative;
-    width: 500px; /* was 900px — bring down to a scale that matches category-card width */
-    max-width: 100%;
-    margin:40px auto 20px;
+    width: 45%;       /* scales with .newsletter's actual width, not a flat 500px */
+    min-width: 320px;  /* keeps it readable on narrow viewports */
+    max-width: 600px;  /* keeps it from getting silly on ultra-wide windows */
+    margin: 20px auto; /* was 40px auto 20px — tighten vertical gap too */
 }
 
 .quote-scene{
