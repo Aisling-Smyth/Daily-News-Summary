@@ -23,6 +23,8 @@ from cluster import cluster
 from rank import rank
 from summarise import summarise
 
+from on_this_day import get_on_this_day_card, get_fun_days_card
+
 from config import NEWSLETTER_URL
 
 from newsletter_html import (
@@ -187,7 +189,23 @@ def render_full_newsletter(today: str, sections, raw_sections) -> str:
         story_images,  # floating critters
     )
 
+    on_this_day = get_on_this_day_card()
+
+    if on_this_day:
+        on_this_day_html = "".join(
+            f"<p>• {escape(item)}</p>"
+            for item in get_on_this_day_card()
+        )
+
     quote, author = quote_of_the_day()
+
+    fun_day = get_fun_days_card()
+
+    if fun_day:
+        fun_day_html = "".join(
+            f"<p>• {escape(item)}</p>"
+            for item in get_fun_days_card()
+        )
 
     title = "Up Smyth Creek"
     html = HTML_TEMPLATE
@@ -200,9 +218,11 @@ def render_full_newsletter(today: str, sections, raw_sections) -> str:
         .replace("{toc_html}", toc_html)
         .replace("{sections_html}", sections_html)
         .replace("{NEWSLETTER_URL}", NEWSLETTER_URL)
+        .replace("{on_this_day_html}", on_this_day_html)
         .replace("{quote}", quote)
         .replace("{author}", author)
         .replace("{quote_scene}", resolve_asset("images/quote_otter.png"))
+        .replace("{fun_day_html}", fun_day_html)
     )
 
 
@@ -360,10 +380,10 @@ def main():
             today, sections, raw_sections
         )
 
-        email_html = render_email_summary(
-            sections,
-            NEWSLETTER_URL,
-        )
+        # email_html = render_email_summary(
+        #     sections,
+        #     NEWSLETTER_URL,
+        # )
 
         output_file = output_dir / (
             f"daily_{today}.html"
@@ -379,80 +399,80 @@ def main():
             output_file,
         )
 
-        html_dir = Path("site")
-        html_dir.mkdir(exist_ok=True)
+        # html_dir = Path("site")
+        # html_dir.mkdir(exist_ok=True)
 
-        # Latest edition
-        html_file = html_dir / "index.html"
+        # # Latest edition
+        # html_file = html_dir / "index.html"
 
-        html_file.write_text(
-            full_html,
-            encoding="utf-8",
-        )
+        # html_file.write_text(
+        #     full_html,
+        #     encoding="utf-8",
+        # )
 
-        # Archive copy
-        archive_dir = html_dir / "archive"
-        archive_dir.mkdir(
-            exist_ok=True
-        )
+        # # Archive copy
+        # archive_dir = html_dir / "archive"
+        # archive_dir.mkdir(
+        #     exist_ok=True
+        # )
 
-        archive_file = archive_dir / f"{today}.html"
+        # archive_file = archive_dir / f"{today}.html"
 
-        archive_file.write_text(
-            full_html,
-            encoding="utf-8",
-        )
+        # archive_file.write_text(
+        #     full_html,
+        #     encoding="utf-8",
+        # )
 
-        archive_page = html_dir / "archive.html"
+        # archive_page = html_dir / "archive.html"
 
-        archive_page.write_text(
-            generate_archive_page(
-                archive_dir
-            ),
-            encoding="utf-8",
-        )
+        # archive_page.write_text(
+        #     generate_archive_page(
+        #         archive_dir
+        #     ),
+        #     encoding="utf-8",
+        # )
 
-        logger.info(
-            "Archive page written to %s",
-            archive_page,
-        )
+        # logger.info(
+        #     "Archive page written to %s",
+        #     archive_page,
+        # )
 
-        logger.info(
-            "HTML newsletter written to %s",
-            html_file,
-        )
+        # logger.info(
+        #     "HTML newsletter written to %s",
+        #     html_file,
+        # )
 
-        if (
-            EMAIL_SEND_ENABLED
-            and not args.no_email
-        ):
-            success = send_newsletter_email(
-                email_html,
-                subject=build_newsletter_title(today),
-            )
+        # if (
+        #     EMAIL_SEND_ENABLED
+        #     and not args.no_email
+        # ):
+        #     success = send_newsletter_email(
+        #         email_html,
+        #         subject=build_newsletter_title(today),
+        #     )
 
-            if success:
-                logger.info(
-                    "Newsletter emailed successfully"
-                )
-            else:
-                logger.error(
-                    "Newsletter generated but email failed"
-                )
+        #     if success:
+        #         logger.info(
+        #             "Newsletter emailed successfully"
+        #         )
+        #     else:
+        #         logger.error(
+        #             "Newsletter generated but email failed"
+        #         )
 
-        elif args.no_email:
-            logger.info(
-                "Email skipped by user request"
-            )
+        # elif args.no_email:
+        #     logger.info(
+        #         "Email skipped by user request"
+        #     )
 
-        else:
-            logger.info(
-                "Email disabled"
-            )
+        # else:
+        #     logger.info(
+        #         "Email disabled"
+        #     )
 
-        logger.info(
-            "Newsletter generation complete"
-        )
+        # logger.info(
+        #     "Newsletter generation complete"
+        # )
 
     except Exception:
         logger.error(

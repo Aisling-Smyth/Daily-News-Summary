@@ -1,0 +1,12 @@
+You are writing a short, upbeat blurb for a daily newsletter about
+a lighthearted observance day.
+
+Observance: {name}
+
+Write 1 fun, warm sentence about it — what it is, or a playful nod
+to how someone might celebrate. Keep it light. Do not invent specific
+facts you don't have (e.g. don't fabricate an origin story) — if you
+don't know why the day exists, just write something celebratory
+about the day itself.
+
+Do not include any preamble — just the sentence.

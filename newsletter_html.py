@@ -501,14 +501,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
 
   /* ---------- Responsive ---------- */
-  @media (max-width: 620px) {
-    .newsletter { padding: 30px 20px 36px; }
-    .header { flex-direction: column; gap: 8px; }
-    .logo-hero { width: 90px; }
-    .title-block h1 { font-size: 1.8rem; }
-    .story-critter { display: none; }
-    .bottom-row { flex-wrap: wrap; gap: 14px; }
-  }
+@media (max-width:900px){
+
+    .daily-extra{
+        flex-direction:column;
+        gap:18px;
+    }
+
+    .quote-footer{
+        width:100%;
+        min-width:0;
+        max-width:550px;
+    }
+
+    .extra-card{
+        width:100%;
+    }
+}
 
 .quote-footer{
     position:relative;
@@ -560,6 +569,48 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     color:#222;
 }
 
+.daily-extra{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:24px;
+    margin:40px 0 10px;
+}
+
+.extra-card{
+    flex:1;
+    background:var(--card-bg);
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 6px 16px rgba(60,95,75,.08);
+}
+
+.extra-card h3{
+    margin:0 0 14px;
+    text-align:center;
+    font-family:'Baloo 2', cursive;
+    color:var(--title-blue);
+    font-size:1.2rem;
+}
+
+.extra-card ul{
+    margin:0;
+    padding-left:18px;
+}
+
+.extra-card li{
+    margin-bottom:14px;
+    line-height:1.5;
+    font-size:.92rem;
+}
+
+.quote-footer{
+    position:relative;
+    flex:1.3;
+    min-width:420px;
+    max-width:560px;
+}
+
   /* ---------- Print ---------- */
   @media print {
     body { background: white; padding: 0; }
@@ -595,23 +646,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     {sections_html}
   </div>
 
-<div class="quote-footer">
+<div class="daily-extra">
 
-    <img
-        src="{quote_scene}"
-        class="quote-scene"
-        alt=""
-    >
+    <div class="extra-card history-card">
+        <h3>🏛️ On This Day</h3>
+        {on_this_day_html}
+    </div>
 
-    <div class="quote-content">
+    <div class="quote-footer">
 
-        <blockquote>
-            {quote}
-        </blockquote>
-        <p class="quote-author">
-            — {author}
-        </p>
+        <img
+            src="{quote_scene}"
+            class="quote-scene"
+            alt=""
+        >
 
+        <div class="quote-content">
+            <blockquote>
+                {quote}
+            </blockquote>
+
+            <p class="quote-author">
+                — {author}
+            </p>
+        </div>
+
+    </div>
+
+    <div class="extra-card celebrate-card">
+        <h3>🎉 Today's Reason to Celebrate</h3>
+        {fun_day_html}
     </div>
 
 </div>

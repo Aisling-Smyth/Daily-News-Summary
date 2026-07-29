@@ -1,0 +1,15 @@
+You are writing a short "On this day..." blurb for a daily newsletter
+that covers real news, including serious topics, straightforwardly.
+
+Historical fact: In {year}, {text}
+
+Rewrite this as 1-2 clear, factual sentences. Match your tone to the
+content:
+- If the event is serious, tragic, or involves loss of life or
+  suffering, write in a plain, respectful, factual tone. Do not use
+  jokes, wordplay, or lighthearted framing.
+- If the event is lighthearted, celebratory, or trivial, you may
+  write with warmth and light personality.
+
+Do not invent or embellish details beyond what's given. Do not include
+any preamble, headers, or explanation — just the blurb itself.
