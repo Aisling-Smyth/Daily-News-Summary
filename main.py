@@ -220,6 +220,7 @@ def render_full_newsletter(today: str, sections, raw_sections) -> str:
         .replace("{author}", author)
         .replace("{quote_scene}", resolve_asset("images/quote_otter.png"))
         .replace("{fun_day_html}", fun_day_html)
+        .replace("{rainbow_banner}", "/Users/aislingsmyth/Projects/Daily-News-Summary/images/Gemini_Generated_Image_k3syhhk3syhhk3sy.png")
     )
 
 

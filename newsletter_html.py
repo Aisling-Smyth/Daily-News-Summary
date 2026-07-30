@@ -538,14 +538,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 }
 
-.quote-footer{
-    position:relative;
-    width: 45%;       /* scales with .newsletter's actual width, not a flat 500px */
-    min-width: 320px;  /* keeps it readable on narrow viewports */
-    max-width: 600px;  /* keeps it from getting silly on ultra-wide windows */
-    margin: 20px auto; /* was 40px auto 20px — tighten vertical gap too */
-}
-
 .quote-scene{
     display:block;
     width:100%;
@@ -590,7 +582,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 .daily-extra {
     display: flex;
-    align-items: stretch;   /* <-- important */
+    align-items: center;
+    justify-content: center;
     gap: 24px;
     margin: 40px 0;
 }
@@ -633,6 +626,61 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     align-items: center;
 }
 
+.rainbow-scene {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.rainbow-img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.rainbow-content {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    transform: translateX(-50%);
+    width: 55%;
+    height: 40%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3%;
+
+    text-align: center;
+    overflow: hidden;
+
+    outline: 2px solid red;   /* TEMPORARY — use this to see the box while tuning */
+}
+
+.rainbow-content p {
+    margin: 0;
+    font-family: 'Short Stack', cursive;
+    color: var(--title-blue);
+    line-height: 1.15;
+}
+
+.quote-footer,
+.celebrate-card {
+    flex: 0 0 auto;      /* size to content, don't force equal widths */
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.quote-scene,
+.rainbow-img {
+    display: block;
+    height: 100%;
+    width: auto;          /* width follows from height + natural aspect ratio */
+}
+
   /* ---------- Print ---------- */
   @media print {
     body { background: white; padding: 0; }
@@ -668,12 +716,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     {sections_html}
   </div>
 
-<div class="daily-extra">
-
+<div class="history-row">
     <div class="extra-card history-card">
         <h3>🏛️ On This Day</h3>
-        {on_this_day_html}
+        <div class="history-columns">
+            {on_this_day_html}
+        </div>
     </div>
+</div>
+
+<div class="daily-extra">
 
     <div class="quote-footer">
 
@@ -695,10 +747,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     </div>
 
-    <div class="extra-card celebrate-card">
-        <h3>🎉 Today's Reasons to Celebrate</h3>
-        {fun_day_html}
+<div class="celebrate-card">
+    <div class="rainbow-scene">
+        <img src="{rainbow_banner}" class="rainbow-img" alt="">
+        <div class="rainbow-content">
+            {fun_day_html}
+        </div>
     </div>
+</div>
 
 </div>
 
@@ -773,6 +829,79 @@ window.addEventListener("load", () => {
 window.addEventListener("resize", () => {
     document.querySelectorAll(".quote-content").forEach(fitText);
 });
+function fitRainbowText(container) {
+    const items = Array.from(container.querySelectorAll("p"));
+    if (!items.length) return;
+
+    const containerRect = container.getBoundingClientRect();
+
+    function fits() {
+        let top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
+        items.forEach(el => {
+            const r = el.getBoundingClientRect();
+            top = Math.min(top, r.top);
+            left = Math.min(left, r.left);
+            right = Math.max(right, r.right);
+            bottom = Math.max(bottom, r.bottom);
+        });
+        return (right - left) <= containerRect.width && (bottom - top) <= containerRect.height;
+    }
+
+    function applySize(size) {
+        items.forEach(el => el.style.fontSize = size + "px");
+    }
+
+    let size = 20;
+    const minSize = 9;
+    applySize(size);
+    while (!fits() && size > minSize) {
+        size -= 0.5;
+        applySize(size);
+    }
+
+    while (fits()) {
+        size += 0.5;
+        applySize(size);
+    }
+    size -= 0.5;
+    applySize(size);
+}
+
+window.addEventListener("load", () => {
+    document.querySelectorAll(".rainbow-content").forEach(fitRainbowText);
+});
+window.addEventListener("resize", () => {
+    document.querySelectorAll(".rainbow-content").forEach(fitRainbowText);
+});
+
+function fitDailyExtraRow() {
+    const row = document.querySelector(".daily-extra");
+    const otterImg = document.querySelector(".quote-scene");
+    const rainbowImg = document.querySelector(".rainbow-img");
+    const otterBox = document.querySelector(".quote-footer");
+    const rainbowBox = document.querySelector(".celebrate-card");
+
+    if (!otterImg.naturalWidth || !rainbowImg.naturalWidth) return;
+
+    const gapPx = parseFloat(getComputedStyle(row).gap) || 0;
+    const containerWidth = row.clientWidth;
+
+    const otterAR = otterImg.naturalWidth / otterImg.naturalHeight;
+    const rainbowAR = rainbowImg.naturalWidth / rainbowImg.naturalHeight;
+
+    // total width = height*(otterAR + rainbowAR) + gap == containerWidth
+    const height = (containerWidth - gapPx) / (otterAR + rainbowAR);
+
+    otterBox.style.height = height + "px";
+    rainbowBox.style.height = height + "px";
+
+    // re-run text fitting now that box sizes changed
+    document.querySelectorAll(".quote-content").forEach(fitText);
+    document.querySelectorAll(".rainbow-content").forEach(fitRainbowText);
+}
+
+window.addEventListener("load", fitDailyExtraRow);
+window.addEventListener("resize", fitDailyExtraRow);
 </script>
 </body>
 </html>
